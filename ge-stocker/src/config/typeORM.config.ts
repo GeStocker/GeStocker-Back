@@ -10,7 +10,7 @@ export const TypeOrmConfig = TypeOrmModule.forRootAsync({
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [],
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
         logging: false,
         dropSchema: true
