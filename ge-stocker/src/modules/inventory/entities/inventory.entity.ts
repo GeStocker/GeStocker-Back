@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/modules/users/entities/user.entity';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Inventory {
@@ -13,4 +14,8 @@ export class Inventory {
 
   @Column()
   fechaDeCreacion: Date;
+
+  @ManyToOne(() => User, (user) => user.inventories)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

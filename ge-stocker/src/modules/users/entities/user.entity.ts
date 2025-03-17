@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { Role } from "src/modules/roles/entities/role.entity";
+import { Inventory } from "src/modules/inventory/entities/inventory.entity";
 
 @Entity({
     name: 'users'
@@ -62,4 +63,8 @@ export class User {
     @ManyToOne(() => Role)
     @JoinColumn({ name: 'role' })
     role: Role;
+
+    @OneToMany(() => Inventory, (inventory) => inventory.user)
+    @JoinColumn({ name: 'user_id' })
+    inventories: Inventory[];
 } 
