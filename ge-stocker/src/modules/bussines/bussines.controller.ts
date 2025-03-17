@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { BussinesService } from './bussines.service';
-import { CreateBussineDto } from './dto/create-bussine.dto';
-import { UpdateBussineDto } from './dto/update-bussine.dto';
+import { CreateBussinesDto } from './dto/create-bussine.dto';
+import { UpdateBussinesDto } from './dto/update-bussine.dto';
 
 @Controller('bussines')
 export class BussinesController {
   constructor(private readonly bussinesService: BussinesService) {}
 
   @Post()
-  create(@Body() createBussineDto: CreateBussineDto) {
+  create(@Body() createBussineDto: CreateBussinesDto) {
     return this.bussinesService.create(createBussineDto);
   }
 
@@ -23,7 +23,7 @@ export class BussinesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBussineDto: UpdateBussineDto) {
+  update(@Param('id') id: string, @Body() updateBussineDto: UpdateBussinesDto) {
     return this.bussinesService.update(+id, updateBussineDto);
   }
 
