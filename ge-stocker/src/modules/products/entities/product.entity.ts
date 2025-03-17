@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
+import { Inventory } from "src/modules/inventory/entities/inventory.entity";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, ManyToOne, In } from "typeorm";
 
 @Entity({
     name: 'products'
@@ -44,4 +45,7 @@ export class Product {
 
     @CreateDateColumn()
     createdAt: string;
+
+    @ManyToOne(() => Inventory, inventory => inventory.products)
+    inventory: Inventory;
 }

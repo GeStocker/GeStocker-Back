@@ -1,5 +1,6 @@
+import { Product } from 'src/modules/products/entities/product.entity';
 import { User } from 'src/modules/users/entities/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Inventory {
@@ -18,4 +19,7 @@ export class Inventory {
   @ManyToOne(() => User, (user) => user.inventories)
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(() => Product, (product) => product.inventory)
+  products: Product[];
 }
