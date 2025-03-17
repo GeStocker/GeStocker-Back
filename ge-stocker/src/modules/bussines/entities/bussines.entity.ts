@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/modules/users/entities/user.entity';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Bussines {
@@ -7,5 +8,10 @@ export class Bussines {
   @Column()
   name: string;
   @Column()
-  Direccion: string;
+  direction: string;
+
+  @ManyToOne(() => User, (user) => user.businesses)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }
+  
