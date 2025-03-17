@@ -6,10 +6,11 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { ProductsModule } from './modules/products/products.module';
 import { UsersModule } from './modules/users/users.module';
 import { BussinesModule } from './modules/bussines/bussines.module';
+import { RolesModule } from './modules/roles/roles.module';
 
 
 @Module({
-  imports: [CategoriesBusinessModule, CategoriesProductModule, ProductsModule, InventoryModule, UsersModule, AuthModule, BussinesModule], 
+  imports: [CategoriesBusinessModule, CategoriesProductModule, ProductsModule, InventoryModule, UsersModule, AuthModule, BussinesModule, RolesModule], 
   controllers: [],
   providers: [],
 })
