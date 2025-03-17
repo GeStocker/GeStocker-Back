@@ -1,1 +1,1 @@
-export class CreateBussineDto {}
+export class CreateBussinesDto {}
