@@ -1,5 +1,6 @@
+import { CategoriesProduct } from "src/modules/categories-product/entities/categories-product.entity";
 import { Inventory } from "src/modules/inventory/entities/inventory.entity";
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, ManyToOne, In } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, ManyToOne, In, JoinColumn } from "typeorm";
 
 @Entity({
     name: 'products'
@@ -48,4 +49,8 @@ export class Product {
 
     @ManyToOne(() => Inventory, inventory => inventory.products)
     inventory: Inventory;
+
+    @ManyToOne(() => CategoriesProduct, category => category.product)
+    @JoinColumn({ name: 'productCategory_id' })
+    category: CategoriesProduct;
 }
