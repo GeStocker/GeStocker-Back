@@ -2,7 +2,7 @@ import { Bussines } from "src/modules/bussines/entities/bussines.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity ({
-    name: 'CATEGORIES_BUSINESS'
+    name: 'categories_business',
 })
 export class CategoriesBusiness {
     @PrimaryGeneratedColumn('uuid')
