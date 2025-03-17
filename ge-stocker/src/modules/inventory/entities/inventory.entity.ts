@@ -1,17 +1,16 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Inventory {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    name: string;
-    
-    @Column()
-    description: string;
+  @Column()
+  name: string;
 
-    @Column()
-    fechaDeCreacion: Date;
+  @Column()
+  description: string;
 
+  @Column()
+  fechaDeCreacion: Date;
 }
