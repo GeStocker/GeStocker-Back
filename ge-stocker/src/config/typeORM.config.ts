@@ -13,6 +13,9 @@ export const TypeOrmConfig = TypeOrmModule.forRootAsync({
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
         logging: false,
-        dropSchema: true
+        dropSchema: true,
+        ssl:{
+            rejectUnauthorized: false
+        }
     }),
 });
