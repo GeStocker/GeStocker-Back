@@ -1,10 +1,11 @@
-import { CategoriesBusiness } from 'src/modules/categories-bussines/entities/categories-business.entity';
+import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -29,7 +30,7 @@ export class Bussines {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => CategoriesBusiness, (category) => category.business)
-  @JoinColumn({ name: 'businessCategory_id' })
-  category: CategoriesBusiness;
+  @OneToMany(() => Inventory, (inventory) => inventory.business)
+  @JoinColumn({ name: 'inventory_id' })
+  inventories: Inventory[];
 }

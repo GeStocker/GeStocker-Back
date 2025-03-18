@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { Role } from 'src/modules/roles/entities/role.entity';
 import { Bussines } from 'src/modules/bussines/entities/bussines.entity';
-import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
 
 @Entity({
   name: 'users',
@@ -75,7 +74,4 @@ export class User {
   @JoinColumn({ name: 'buisiness_id' })
   businesses: Bussines[];
 
-  @OneToMany(() => Inventory, (inventory) => inventory.user)
-  @JoinColumn({ name: 'inventory_id' })
-  inventories: Inventory[];
 }
