@@ -1,34 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { BussinesService } from './bussines.service';
-import { CreateBussinesDto } from './dto/create-bussine.dto';
-import { UpdateBussinesDto } from './dto/update-bussine.dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { BusinessService } from './bussines.service';
+import { CreateBusinessDto } from './dto/create-business.dto';
+import { UpdateBusinessDto } from './dto/update-business.dto';
+import { Request } from 'express';
+import { UserRole } from '../roles/dto/create-role.dto';
 
 @Controller('bussines')
 export class BussinesController {
-  constructor(private readonly bussinesService: BussinesService) {}
+  constructor(private readonly businessService: BusinessService) {}
 
   @Post()
-  create(@Body() createBussineDto: CreateBussinesDto) {
-    return this.bussinesService.create(createBussineDto);
+  createBusiness(@Body() createBusinessDto: CreateBusinessDto,
+  @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }, // FALTARIA CUSTOMIZAR UN REQUEST
+) {
+    const userId = request.user.id;
+    return this.businessService.createBusiness(createBusinessDto, userId);
   }
 
   @Get()
   findAll() {
-    return this.bussinesService.findAll();
+    return this.businessService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.bussinesService.findOne(+id);
+    return this.businessService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBussineDto: UpdateBussinesDto) {
-    return this.bussinesService.update(+id, updateBussineDto);
+  update(@Param('id') id: string, @Body() updateBussineDto: UpdateBusinessDto) {
+    return this.businessService.update(+id, updateBussineDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.bussinesService.remove(+id);
+    return this.businessService.remove(+id);
   }
 }
