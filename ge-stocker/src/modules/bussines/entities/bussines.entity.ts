@@ -1,4 +1,5 @@
 import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
+import { Product } from 'src/modules/products/entities/product.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
@@ -11,7 +12,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Bussines {
+export class Business {
   @PrimaryGeneratedColumn('uuid')
   id: string;
   @Column({
@@ -37,4 +38,7 @@ export class Bussines {
   @OneToMany(() => Inventory, (inventory) => inventory.business)
   @JoinColumn({ name: 'inventory_id' })
   inventories: Inventory[];
+
+  @OneToMany(() => Product, (product) => product.business)
+  products: Product[];
 }
