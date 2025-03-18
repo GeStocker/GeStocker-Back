@@ -8,10 +8,16 @@ import { BussinesModule } from './modules/bussines/bussines.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { TypeOrmConfig } from './config/typeORM.config';
 import { EnvConfig } from './config/env.config';
+import { JwtModule } from '@nestjs/jwt';
 
 
 @Module({
   imports: [
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRETS,
+      signOptions: {expiresIn: "1h"}
+    }),
     TypeOrmConfig,
     EnvConfig,
     CategoriesProductModule, 
