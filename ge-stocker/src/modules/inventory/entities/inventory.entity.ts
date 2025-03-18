@@ -1,9 +1,9 @@
+import { Bussines } from 'src/modules/bussines/entities/bussines.entity';
 import { Product } from 'src/modules/products/entities/product.entity';
-import { User } from 'src/modules/users/entities/user.entity';
 import {
+  JoinColumn,
   Column,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -31,9 +31,9 @@ export class Inventory {
   @Column()
   fechaDeCreacion: Date;
 
-  @ManyToOne(() => User, (user) => user.inventories)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+ @ManyToOne(() => Bussines, (bussines) => bussines.inventories)
+ @JoinColumn({ name: 'bussines_id' })
+  business: Bussines;
 
   @OneToMany(() => Product, (product) => product.inventory)
   products: Product[];
