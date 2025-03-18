@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { CategoriesBusinessModule } from './modules/categories-bussines/categories-business.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoriesProductModule } from './modules/categories-product/categories-product.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
@@ -15,7 +14,6 @@ import { EnvConfig } from './config/env.config';
   imports: [
     TypeOrmConfig,
     EnvConfig,
-    CategoriesBusinessModule, 
     CategoriesProductModule, 
     ProductsModule, 
     InventoryModule, 

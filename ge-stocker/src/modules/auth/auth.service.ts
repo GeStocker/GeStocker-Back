@@ -1,11 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../users/entities/user.entity';
+import * as bcrypt from 'bcryptjs';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
+  async registerUser(user: CreateAuthDto): Promise<Partial<User>> {
+    const {
+      email,
+      password,
+      passwordConfirmation,
+      ...userWithoutConfirmation
+    } = user;
+
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('Email already registered');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await this.userRepository.save({
+      ...userWithoutConfirmation,
+      email,
+      password: hashedPassword,
+    });
+
+    const { password: _, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
   }
 
   findAll() {
