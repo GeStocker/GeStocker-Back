@@ -26,7 +26,14 @@ export class Business {
     length: 50,
     nullable: false,
   })
-  direction: string;
+  address: string;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: false,
+  })
+  description: string;
 
   @CreateDateColumn()
   createdAt: string;
