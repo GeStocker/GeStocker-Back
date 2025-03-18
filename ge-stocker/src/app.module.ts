@@ -9,6 +9,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { TypeOrmConfig } from './config/typeORM.config';
 import { EnvConfig } from './config/env.config';
 import { JwtModule } from '@nestjs/jwt';
+import { InventoryProductsModule } from './modules/inventory-products/inventory-products.module';
 
 
 @Module({
@@ -26,7 +27,8 @@ import { JwtModule } from '@nestjs/jwt';
     UsersModule, 
     AuthModule, 
     BussinesModule, 
-    RolesModule
+    RolesModule,
+    InventoryProductsModule
   ], 
   controllers: [],
   providers: [],

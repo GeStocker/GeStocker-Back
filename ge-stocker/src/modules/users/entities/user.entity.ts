@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Role } from 'src/modules/roles/entities/role.entity';
-import { Bussines } from 'src/modules/bussines/entities/bussines.entity';
+import { Business } from 'src/modules/bussines/entities/bussines.entity';
 
 @Entity({
   name: 'users',
@@ -70,8 +70,8 @@ export class User {
   @JoinColumn({ name: 'role' })
   role: Role;
 
-  @OneToMany(() => Bussines, (business) => business.user)
+  @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'buisiness_id' })
-  businesses: Bussines[];
+  businesses: Business[];
 
 }
