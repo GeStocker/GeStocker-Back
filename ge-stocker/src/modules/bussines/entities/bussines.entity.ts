@@ -2,6 +2,7 @@ import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -25,6 +26,9 @@ export class Bussines {
     nullable: false,
   })
   direction: string;
+
+  @CreateDateColumn()
+  createdAt: string;
 
   @ManyToOne(() => User, (user) => user.businesses)
   @JoinColumn({ name: 'user_id' })

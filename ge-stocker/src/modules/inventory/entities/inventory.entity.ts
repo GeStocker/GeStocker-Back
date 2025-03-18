@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -28,8 +29,8 @@ export class Inventory {
   })
   description: string;
 
-  @Column()
-  fechaDeCreacion: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
  @ManyToOne(() => Bussines, (bussines) => bussines.inventories)
  @JoinColumn({ name: 'bussines_id' })
