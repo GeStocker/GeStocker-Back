@@ -1,5 +1,5 @@
-import { Bussines } from 'src/modules/bussines/entities/bussines.entity';
-import { Product } from 'src/modules/products/entities/product.entity';
+import { Business } from 'src/modules/bussines/entities/bussines.entity';
+import { InventoryProduct } from 'src/modules/inventory-products/entities/inventory-products.entity';
 import {
   JoinColumn,
   Column,
@@ -39,10 +39,10 @@ export class Inventory {
   @CreateDateColumn()
   createdAt: Date;
 
- @ManyToOne(() => Bussines, (bussines) => bussines.inventories)
+ @ManyToOne(() => Business, (bussines) => bussines.inventories)
  @JoinColumn({ name: 'bussines_id' })
-  business: Bussines;
+  business: Business;
 
-  @OneToMany(() => Product, (product) => product.inventory)
-  products: Product[];
+  @OneToMany(() => InventoryProduct, (inventoryProduct) => inventoryProduct.inventory)
+  inventoryProducts: InventoryProduct[];
 }
