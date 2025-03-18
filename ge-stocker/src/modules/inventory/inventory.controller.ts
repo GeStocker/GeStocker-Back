@@ -8,8 +8,8 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post()
-  create(@Body() createInventoryDto: CreateInventoryDto) {
-    return this.inventoryService.create(createInventoryDto);
+  createInventory(@Body() createInventoryDto: CreateInventoryDto) {
+    return this.inventoryService.createInventory(createInventoryDto);
   }
 
   @Get()
