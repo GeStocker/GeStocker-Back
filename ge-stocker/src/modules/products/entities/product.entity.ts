@@ -1,6 +1,7 @@
+import { Business } from "src/modules/bussines/entities/bussines.entity";
 import { CategoriesProduct } from "src/modules/categories-product/entities/categories-product.entity";
-import { Inventory } from "src/modules/inventory/entities/inventory.entity";
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, ManyToOne, In, JoinColumn } from "typeorm";
+import { InventoryProduct } from "src/modules/inventory-products/entities/inventory-products.entity";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, ManyToOne, In, JoinColumn, OneToMany } from "typeorm";
 
 @Entity({
     name: 'products'
@@ -24,20 +25,6 @@ export class Product {
     description: string;
 
     @Column({
-        type: 'decimal',
-        precision: 10,
-        scale: 2,
-        nullable: false
-    })
-    price: number;
-
-    @Column({
-        type: 'int',
-        nullable: false
-    })
-    stock: number;
-
-    @Column({
         type: 'text',
         nullable: false,
         default: 'default-image-url.png'
@@ -47,10 +34,13 @@ export class Product {
     @CreateDateColumn()
     createdAt: string;
 
-    @ManyToOne(() => Inventory, inventory => inventory.products)
-    inventory: Inventory;
+    @ManyToOne(() => Business, (business) => business.products)
+    business: Business;
 
     @ManyToOne(() => CategoriesProduct, category => category.product)
     @JoinColumn({ name: 'productCategory_id' })
     category: CategoriesProduct;
+
+    @OneToMany(() => InventoryProduct, (inventoryProduct) => inventoryProduct.product)
+    inventoryProducts: InventoryProduct[];
 }
