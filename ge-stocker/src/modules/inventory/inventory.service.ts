@@ -1,11 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Inventory } from './entities/inventory.entity';
+import { Repository } from 'typeorm';
+import { Business } from '../bussines/entities/bussines.entity';
 
 @Injectable()
 export class InventoryService {
-  create(createInventoryDto: CreateInventoryDto) {
-    return 'This action adds a new inventory';
+  constructor(
+    @InjectRepository(Inventory)
+    private readonly inventoryRepository: Repository<Inventory>,
+    @InjectRepository(Business)
+    private readonly businessRepository: Repository<Business>,
+  ) {}
+
+  async createInventory(createInventoryDto: CreateInventoryDto) {
+    const { businessId } = createInventoryDto;
+
+    const business = await this.businessRepository.findOne({
+      where: { id: businessId },
+    });
+
+    if (!business) throw new NotFoundException('Business not found');
+
+    const newInventory = this.inventoryRepository.create({
+      ...createInventoryDto,
+      business,
+    });
+
+    return await this.inventoryRepository.save(newInventory);
   }
 
   findAll() {
