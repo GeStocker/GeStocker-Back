@@ -1,7 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Bussines } from 'src/modules/bussines/entities/bussines.entity';
+import { Business } from 'src/modules/bussines/entities/bussines.entity';
 import { CategoriesProduct } from 'src/modules/categories-product/entities/categories-product.entity';
+import { InventoryProduct } from 'src/modules/inventory-products/entities/inventory-products.entity';
 import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
 import { Product } from 'src/modules/products/entities/product.entity';
 import { Role } from 'src/modules/roles/entities/role.entity';
@@ -16,7 +17,7 @@ export const TypeOrmConfig = TypeOrmModule.forRootAsync({
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User, Role, Bussines, Inventory, Product, CategoriesProduct],
+        entities: [User, Role, Business, Inventory, Product, CategoriesProduct, InventoryProduct],
         synchronize: true,
         logging: false,
         // dropSchema: true,
