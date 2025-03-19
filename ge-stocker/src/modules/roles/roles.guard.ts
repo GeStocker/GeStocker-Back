@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { UserRole } from './dto/create-role.dto';
+import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -14,7 +15,7 @@ export class RolesGuard implements CanActivate {
             context.getClass()
         ]);
 
-        const request = context.switchToHttp().getRequest();
+        const request: CustomRequest = context.switchToHttp().getRequest();
         const user = request.user;
 
         const hasRole = () => requiredRoles.some((role) => user?.roles?.includes(role));

@@ -2,8 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, Req, Put } from '@nestjs/co
 import { BussinesService } from './bussines.service';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
-import { Request } from 'express';
-import { UserRole } from '../roles/dto/create-role.dto';
+import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Controller('bussines')
 export class BussinesController {
@@ -12,14 +11,14 @@ export class BussinesController {
   @Post()
   createBusiness(
     @Body() createBusinessDto: CreateBusinessDto,
-    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }, // FALTARIA CUSTOMIZAR UN REQUEST
+    @Req() request: CustomRequest,
 ) {
     const userId = request.user.id;
     return this.businessService.createBusiness(createBusinessDto, userId);
   }
 
   @Get()
-  getUserBusinesses(@Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }) {
+  getUserBusinesses(@Req() request: CustomRequest) {
     const userId = request.user.id
     return this.businessService.getUserBusinesses(userId);
   }
@@ -27,7 +26,7 @@ export class BussinesController {
   @Get(':businessId')
   getUserBusinessById(
     @Param('businessId') businessId: string, 
-    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }
+    @Req() request: CustomRequest
 ) {
     const userId = request.user.id
     return this.businessService.getUserBusinessById(businessId, userId);
@@ -37,7 +36,7 @@ export class BussinesController {
   updateBusiness(
     @Param('id') businessId: string, 
     @Body() updateBussineDto: UpdateBusinessDto,
-    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }
+    @Req() request: CustomRequest
   ) {
     const userId = request.user.id;
     return this.businessService.updateBusiness(businessId, updateBussineDto, userId);
@@ -46,7 +45,7 @@ export class BussinesController {
   @Put('deactivate/:businessId')
   deactivateBusiness(
     @Param('businessId') businessId: string,
-    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} },
+    @Req() request: CustomRequest,
   ) {
     const userId = request.user.id;
     return this.businessService.deactivateBusiness(businessId, userId);
