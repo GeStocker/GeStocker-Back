@@ -39,6 +39,9 @@ export class Inventory {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ default: true })
+  isActive: boolean;
+
  @ManyToOne(() => Business, (bussines) => bussines.inventories)
  @JoinColumn({ name: 'bussines_id' })
   business: Business;

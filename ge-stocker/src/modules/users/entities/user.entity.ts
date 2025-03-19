@@ -66,6 +66,9 @@ export class User {
   @CreateDateColumn()
   createdAt: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'role' })
   role: Role;
