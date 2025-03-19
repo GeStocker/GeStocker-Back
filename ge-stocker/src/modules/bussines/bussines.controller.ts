@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
-import { BusinessService } from './bussines.service';
+import { BussinesService } from './bussines.service';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { Request } from 'express';
@@ -7,7 +7,7 @@ import { UserRole } from '../roles/dto/create-role.dto';
 
 @Controller('bussines')
 export class BussinesController {
-  constructor(private readonly businessService: BusinessService) {}
+  constructor(private readonly businessService: BussinesService) {}
 
   @Post()
   createBusiness(@Body() createBusinessDto: CreateBusinessDto,

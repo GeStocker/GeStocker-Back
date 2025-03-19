@@ -8,7 +8,7 @@ import { User } from '../users/entities/user.entity';
 
 
 @Injectable()
-export class BusinessService {
+export class BussinesService {
   constructor(
     @InjectRepository(Business)
     private readonly businessRepository: Repository<Business>,
