@@ -38,6 +38,9 @@ export class Business {
   @CreateDateColumn()
   createdAt: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @ManyToOne(() => User, (user) => user.businesses)
   @JoinColumn({ name: 'user_id' })
   user: User;
