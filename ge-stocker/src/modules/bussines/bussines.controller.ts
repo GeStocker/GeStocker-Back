@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Req, Put } from '@nestjs/common';
 import { BussinesService } from './bussines.service';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
@@ -10,30 +10,45 @@ export class BussinesController {
   constructor(private readonly businessService: BussinesService) {}
 
   @Post()
-  createBusiness(@Body() createBusinessDto: CreateBusinessDto,
-  @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }, // FALTARIA CUSTOMIZAR UN REQUEST
+  createBusiness(
+    @Body() createBusinessDto: CreateBusinessDto,
+    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }, // FALTARIA CUSTOMIZAR UN REQUEST
 ) {
     const userId = request.user.id;
     return this.businessService.createBusiness(createBusinessDto, userId);
   }
 
   @Get()
-  findAll() {
-    return this.businessService.findAll();
+  getUserBusinesses(@Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }) {
+    const userId = request.user.id
+    return this.businessService.getUserBusinesses(userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.businessService.findOne(+id);
+  @Get(':businessId')
+  getUserBusinessById(
+    @Param('businessId') businessId: string, 
+    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }
+) {
+    const userId = request.user.id
+    return this.businessService.getUserBusinessById(businessId, userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBussineDto: UpdateBusinessDto) {
-    return this.businessService.update(+id, updateBussineDto);
+  @Put(':businessId')
+  updateBusiness(
+    @Param('id') businessId: string, 
+    @Body() updateBussineDto: UpdateBusinessDto,
+    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} }
+  ) {
+    const userId = request.user.id;
+    return this.businessService.updateBusiness(businessId, updateBussineDto, userId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.businessService.remove(+id);
+  @Put('deactivate/:businessId')
+  deactivateBusiness(
+    @Param('businessId') businessId: string,
+    @Req() request: Request & { user: { id: string, email: string, role: UserRole[]} },
+  ) {
+    const userId = request.user.id;
+    return this.businessService.deactivateBusiness(businessId, userId);
   }
 }
