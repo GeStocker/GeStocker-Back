@@ -34,6 +34,9 @@ export class Product {
     @CreateDateColumn()
     createdAt: string;
 
+    @Column({ default: true })
+    isActive: boolean;
+
     @ManyToOne(() => Business, (business) => business.products)
     business: Business;
 

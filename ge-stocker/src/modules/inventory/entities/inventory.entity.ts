@@ -42,8 +42,8 @@ export class Inventory {
   @Column({ default: true })
   isActive: boolean;
 
- @ManyToOne(() => Business, (bussines) => bussines.inventories)
- @JoinColumn({ name: 'bussines_id' })
+  @ManyToOne(() => Business, (bussines) => bussines.inventories)
+  @JoinColumn({ name: 'bussines_id' })
   business: Business;
 
   @OneToMany(() => InventoryProduct, (inventoryProduct) => inventoryProduct.inventory)
