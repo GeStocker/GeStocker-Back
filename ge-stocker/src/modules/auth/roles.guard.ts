@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { UserRole } from './dto/create-role.dto';
+import { UserRole } from '../../interfaces/roles.enum';
 import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Injectable()

@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
-import { UserRole } from '../roles/dto/create-role.dto';
+import { UserRole } from '../../interfaces/roles.enum';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -24,6 +24,7 @@ export class AuthService {
       email,
       password,
       passwordConfirmation,
+      roles,
       ...userWithoutConfirmation
     } = user;
 
