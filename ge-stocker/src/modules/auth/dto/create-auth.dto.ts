@@ -19,6 +19,8 @@ export class CreateAuthDto {
   city?: string;
   @IsNotEmpty()
   address: string;
+  @IsNotEmpty()
+  roles: string[];
 }
 
 export class LoginAuthDto {

@@ -31,7 +31,7 @@ export class AuthService {
       where: { email },
     });
     if (existingUser) {
-      throw new BadRequestException('Email already registered');
+      throw new BadRequestException('Correo ya registrado.');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
