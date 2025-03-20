@@ -22,6 +22,7 @@ export class CreateProductDto {
   img?: string;
 
   @IsNotEmpty()
+  @IsString()
   category: string;
 
   @IsNotEmpty()
