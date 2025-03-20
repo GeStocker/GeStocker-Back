@@ -13,22 +13,22 @@ export class InventoryController {
   }
 
   @Get()
-  findAll() {
-    return this.inventoryService.findAll();
+  getInventories() {
+    return this.inventoryService.getInventories();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.inventoryService.findOne(+id);
+  getInventoryById(@Param('id') id: string) {
+    return this.inventoryService.getInventoryById(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInventoryDto: UpdateInventoryDto) {
-    return this.inventoryService.update(+id, updateInventoryDto);
+  updateInventory(@Param('id') id: string, @Body() updateInventoryDto: UpdateInventoryDto) {
+    return this.inventoryService.updateInventory(id, updateInventoryDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.inventoryService.remove(+id);
+  removeInventory(@Param('id') id: string) {
+    return this.inventoryService.removeInventory(id);
   }
 }
