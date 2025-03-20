@@ -5,7 +5,6 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { ProductsModule } from './modules/products/products.module';
 import { UsersModule } from './modules/users/users.module';
 import { BussinesModule } from './modules/bussines/bussines.module';
-import { RolesModule } from './modules/roles/roles.module';
 import { TypeOrmConfig } from './config/typeORM.config';
 import { EnvConfig } from './config/env.config';
 import { JwtModule } from '@nestjs/jwt';
@@ -26,8 +25,7 @@ import { InventoryProductsModule } from './modules/inventory-products/inventory-
     InventoryModule, 
     UsersModule, 
     AuthModule, 
-    BussinesModule, 
-    RolesModule,
+    BussinesModule,
     InventoryProductsModule
   ], 
   controllers: [],
