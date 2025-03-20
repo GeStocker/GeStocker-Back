@@ -87,4 +87,23 @@ export class AuthService {
       token,
     };
   }
+  async registerOrUpdateGoogleUser(profile: any): Promise<Partial<User>> {
+    const { email, firstName, lastName } = profile;
+  
+    let user = await this.userRepository.findOne({
+      where: { email },
+    });
+  
+    if (user) {
+      throw new NotFoundException('Usuario ya registrado');
+    }
+
+    user = await this.userRepository.save({
+      name: `${firstName} ${lastName}`,
+      email
+    });
+  
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
 }
