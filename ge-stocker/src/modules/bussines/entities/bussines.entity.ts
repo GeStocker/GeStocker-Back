@@ -1,3 +1,4 @@
+import { CategoriesProduct } from 'src/modules/categories-product/entities/categories-product.entity';
 import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
 import { Product } from 'src/modules/products/entities/product.entity';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -51,4 +52,7 @@ export class Business {
 
   @OneToMany(() => Product, (product) => product.business)
   products: Product[];
+
+  @ManyToOne(() => CategoriesProduct, (category) => category.business)
+  categories: CategoriesProduct[];
 }
