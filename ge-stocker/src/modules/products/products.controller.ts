@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Controller('products')
 export class ProductsController {
@@ -10,8 +11,12 @@ export class ProductsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  createProduct(
+    @Body() createProductDto: CreateProductDto,
+    @Req() request: CustomRequest,
+  ) {
+    const userId = request.user.id;
+    return this.productsService.createProduct(createProductDto, userId);
   }
 
   @Get()
