@@ -1,5 +1,6 @@
 import { IsEmail, IsNotEmpty, Validate } from 'class-validator';
 import { MatchPassword } from 'src/helpers/passwordMatcher';
+import { UserRole } from 'src/modules/roles/dto/create-role.dto';
 
 export class CreateAuthDto {
   @IsEmail()
@@ -20,7 +21,7 @@ export class CreateAuthDto {
   @IsNotEmpty()
   address: string;
   @IsNotEmpty()
-  roles: string[];
+  roles: UserRole[];
 }
 
 export class LoginAuthDto {
