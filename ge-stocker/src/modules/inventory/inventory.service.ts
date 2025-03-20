@@ -32,19 +32,42 @@ export class InventoryService {
     return await this.inventoryRepository.save(newInventory);
   }
 
-  findAll() {
-    return `This action returns all inventory`;
+  async getInventories() {
+    const inventories = await this.inventoryRepository.find({ relations: ['business'] });
+    if(inventories.length === 0) throw new NotFoundException('No inventories found');
+    return inventories;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} inventory`;
+  async getInventoryById(id: string) {
+    const inventory = await this.inventoryRepository.findOne({where: {id}, relations: ['business']});
+    if (!inventory) throw new NotFoundException(`Inventory not found`);
+    return inventory;
   }
 
-  update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    return `This action updates a #${id} inventory`;
+  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto) {
+    const { businessId } = updateInventoryDto;
+
+    const business = await this.businessRepository.findOne({
+      where: { id: businessId },
+    });
+
+    if (!business) throw new NotFoundException('Business not found');
+
+    const inventory = await this.inventoryRepository.preload({
+      id,
+      ...updateInventoryDto,
+    });
+
+    if (!inventory) throw new NotFoundException(`Inventory not found`);
+
+    return await this.inventoryRepository.save(inventory);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} inventory`;
+  async removeInventory(id: string) {
+    const inventory = await this.getInventoryById(id);
+    if (!inventory) throw new NotFoundException(`Inventory not found`);
+  
+    inventory.isActive = false;
+    return await this.inventoryRepository.save(inventory);
   }
 }
