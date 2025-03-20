@@ -67,7 +67,7 @@ export class User {
   createdAt: string;
 
   @Column({ type: 'simple-array' })
-  role: UserRole[]
+  roles: UserRole[]
 
   @Column({ default: true })
   isActive: boolean;
