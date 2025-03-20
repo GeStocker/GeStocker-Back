@@ -19,6 +19,7 @@ export class ProductsController {
     return this.productsService.createProduct(createProductDto, userId);
   }
 
+
   @Get()
   @UseGuards(AuthGuard)
   findAll() {

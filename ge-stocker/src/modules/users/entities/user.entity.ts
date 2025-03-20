@@ -40,9 +40,10 @@ export class User {
   password: string;
 
   @Column({
-    type: 'bigint',
+    type: 'varchar',
+    length: 15,
   })
-  phone: number;
+  phone: string;
 
   @Column({
     type: 'varchar',

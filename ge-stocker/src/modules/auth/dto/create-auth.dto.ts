@@ -18,9 +18,9 @@ export class CreateAuthDto {
   @Validate(MatchPassword, ['password'])
   passwordConfirmation: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  phone: number;
+  phone: string;
 
   @IsString()
   @IsNotEmpty()
