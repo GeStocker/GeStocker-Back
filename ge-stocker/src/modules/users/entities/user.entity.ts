@@ -66,7 +66,7 @@ export class User {
   @CreateDateColumn()
   createdAt: string;
 
-  @Column({ type: 'simple-array' })
+  @Column({ type: 'simple-array', nullable: false })
   roles: UserRole[]
 
   @Column({ default: true })
