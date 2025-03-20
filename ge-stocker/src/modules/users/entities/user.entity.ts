@@ -7,8 +7,8 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Role } from 'src/modules/roles/entities/role.entity';
 import { Business } from 'src/modules/bussines/entities/bussines.entity';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 @Entity({
   name: 'users',
@@ -66,12 +66,11 @@ export class User {
   @CreateDateColumn()
   createdAt: string;
 
+  @Column({ type: 'simple-array' })
+  role: UserRole[]
+
   @Column({ default: true })
   isActive: boolean;
-
-  @ManyToOne(() => Role)
-  @JoinColumn({ name: 'role' })
-  role: Role;
 
   @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'buisiness_id' })
