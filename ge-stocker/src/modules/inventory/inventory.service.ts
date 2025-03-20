@@ -15,7 +15,7 @@ export class InventoryService {
     private readonly businessRepository: Repository<Business>,
   ) {}
 
-  async createInventory(createInventoryDto: CreateInventoryDto) {
+  async createInventory(createInventoryDto: CreateInventoryDto): Promise<Inventory> {
     const { businessId } = createInventoryDto;
 
     const business = await this.businessRepository.findOne({
@@ -32,19 +32,19 @@ export class InventoryService {
     return await this.inventoryRepository.save(newInventory);
   }
 
-  async getInventories() {
+  async getInventories(): Promise<Inventory[]> {
     const inventories = await this.inventoryRepository.find({ relations: ['business'] });
     if(inventories.length === 0) throw new NotFoundException('No inventories found');
     return inventories;
   }
 
-  async getInventoryById(id: string) {
+  async getInventoryById(id: string): Promise<Inventory> {
     const inventory = await this.inventoryRepository.findOne({where: {id}, relations: ['business']});
     if (!inventory) throw new NotFoundException(`Inventory not found`);
     return inventory;
   }
 
-  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto) {
+  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
     const { businessId } = updateInventoryDto;
 
     const business = await this.businessRepository.findOne({
@@ -63,7 +63,7 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  async removeInventory(id: string) {
+  async removeInventory(id: string): Promise<Inventory> {
     const inventory = await this.getInventoryById(id);
     if (!inventory) throw new NotFoundException(`Inventory not found`);
   
