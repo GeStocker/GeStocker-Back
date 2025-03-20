@@ -8,8 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Proyecto Henry M4')
-    .setDescription('API para un e-commerce')
+    .setTitle('Gestocker')
+    .setDescription('API para gestionar inventarios')
     .setVersion('1.0.0')  
     .addBearerAuth()
     .build();2
