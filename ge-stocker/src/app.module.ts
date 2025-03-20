@@ -8,6 +8,7 @@ import { BussinesModule } from './modules/bussines/bussines.module';
 import { TypeOrmConfig } from './config/typeORM.config';
 import { EnvConfig } from './config/env.config';
 import { JwtModule } from '@nestjs/jwt';
+import { FilesModule } from './modules/files/files.module';
 import { InventoryProductsModule } from './modules/inventory-products/inventory-products.module';
 
 
@@ -26,7 +27,8 @@ import { InventoryProductsModule } from './modules/inventory-products/inventory-
     UsersModule, 
     AuthModule, 
     BussinesModule,
-    InventoryProductsModule
+    InventoryProductsModule,
+    FilesModule
   ], 
   controllers: [],
   providers: [],
