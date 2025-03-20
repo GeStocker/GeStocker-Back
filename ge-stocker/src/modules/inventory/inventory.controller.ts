@@ -5,8 +5,8 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory } from './entities/inventory.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { UserRole } from '../roles/dto/create-role.dto';
-import { RolesGuard } from '../roles/roles.guard';
+import { UserRole } from '../../interfaces/roles.enum';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('inventory')
 export class InventoryController {
