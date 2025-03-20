@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
@@ -10,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { UserRole } from '../../interfaces/roles.enum';
 import { JwtService } from '@nestjs/jwt';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -36,10 +38,15 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    const role = roles[0];
+
+    if (!role) throw new BadRequestException('No role selected');
     const newUser = await this.userRepository.save({
       ...userWithoutConfirmation,
       email,
       password: hashedPassword,
+      roles: [role],
     });
 
     const { password: _, ...userWithoutPassword } = newUser;
