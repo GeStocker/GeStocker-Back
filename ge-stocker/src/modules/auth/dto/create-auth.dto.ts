@@ -1,26 +1,43 @@
-import { IsEmail, IsNotEmpty, Validate } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, Validate } from 'class-validator';
 import { MatchPassword } from 'src/helpers/passwordMatcher';
-import { UserRole } from 'src/modules/roles/dto/create-role.dto';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 export class CreateAuthDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+
+  @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsString()
   @IsNotEmpty()
   password: string;
+
   @Validate(MatchPassword, ['password'])
   passwordConfirmation: string;
+
+  @IsNumber()
   @IsNotEmpty()
   phone: number;
+
+  @IsString()
   @IsNotEmpty()
   country?: string;
+
+  @IsString()
   @IsNotEmpty()
   city?: string;
+
+  @IsString()
   @IsNotEmpty()
   address: string;
+
   @IsNotEmpty()
+  @IsArray()
+  @ArrayMaxSize(1)
+  @IsEnum(UserRole, { each: true })
   roles: UserRole[];
 }
 
