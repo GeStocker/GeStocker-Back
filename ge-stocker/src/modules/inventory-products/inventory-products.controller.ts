@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { InventoryProductsService } from './inventory-products.service';
-import { AuthGuard } from '@nestjs/passport';
 import { CreateInventoryProductsDto } from './dto/create-inventory-product.dto';
-import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-inventory-product.dto';
+import { UpdatePriceDto } from './dto/update-inventory-product.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('inventory-products')
 export class InventoryProductsController {
@@ -11,7 +11,7 @@ export class InventoryProductsController {
   @Post()
   @UseGuards(AuthGuard)
   addProductsToInventory(
-    @Body() createInventoryProductsDto: CreateInventoryProductsDto
+    @Body() createInventoryProductsDto: CreateInventoryProductsDto,
   ) {
     const inventoryId = createInventoryProductsDto.inventoryId;
     const products = createInventoryProductsDto.products;
@@ -27,7 +27,7 @@ export class InventoryProductsController {
   @Put('price/:id')
   @UseGuards(AuthGuard)
   updatePrice(
-    @Param('id') inventoryProductId: string,
+    @Param('id', ParseUUIDPipe) inventoryProductId: string,
     @Body() updatePriceDto: UpdatePriceDto,
   ) {
     return this.inventoryProductsService.updatePrice(inventoryProductId, updatePriceDto)
