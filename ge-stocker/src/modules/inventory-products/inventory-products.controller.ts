@@ -28,8 +28,8 @@ export class InventoryProductsController {
   @UseGuards(AuthGuard)
   updatePrice(
     @Param('id') inventoryProductId: string,
-    @Body() UpdatePriceDto: UpdatePriceDto,
+    @Body() updatePriceDto: UpdatePriceDto,
   ) {
-    return this.inventoryProductsService.updatePrice(inventoryProductId, UpdatePriceDto)
+    return this.inventoryProductsService.updatePrice(inventoryProductId, updatePriceDto)
   };
 }
