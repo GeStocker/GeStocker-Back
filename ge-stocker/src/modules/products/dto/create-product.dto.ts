@@ -17,10 +17,6 @@ export class CreateProductDto {
   @IsString()
   description: string;
 
-  @IsString()
-  @IsOptional()
-  img?: string;
-
   @IsNotEmpty()
   @IsString()
   category: string;
