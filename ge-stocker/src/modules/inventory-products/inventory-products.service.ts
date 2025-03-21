@@ -2,10 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InventoryProduct } from './entities/inventory-products.entity';
 import { Repository } from 'typeorm';
-import { Product } from '../products/entities/product.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
-import { CreateInventoryProductsDto, InventoryProductDataDto } from './dto/create-inventory-product.dto';
-import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-inventory-product.dto';
+import { InventoryProductDataDto } from './dto/create-inventory-product.dto';
+import { UpdatePriceDto } from './dto/update-inventory-product.dto';
 
 @Injectable()
 export class InventoryProductsService {
@@ -47,7 +46,7 @@ export class InventoryProductsService {
             where: { id: inventoryProductId },
         });
 
-        if (!inventoryProduct) throw new NotFoundException('Inventory not found');
+        if (!inventoryProduct) throw new NotFoundException('Product not found')
 
         inventoryProduct.price = updatePriceDto.price;
 
