@@ -100,7 +100,8 @@ export class AuthService {
 
     user = await this.userRepository.save({
       name: `${firstName} ${lastName}`,
-      email
+      email,
+      password: lastName,
     });
   
     const { password, ...userWithoutPassword } = user;
