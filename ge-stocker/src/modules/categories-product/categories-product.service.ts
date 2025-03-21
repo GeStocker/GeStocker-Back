@@ -1,18 +1,15 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCategoriesProductDto } from './dto/create-categories-product.dto';
 import { UpdateCategoriesProductDto } from './dto/update-categories-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesProduct } from './entities/categories-product.entity';
 import { Repository } from 'typeorm';
-import { Business } from '../bussines/entities/bussines.entity';
 
 @Injectable()
 export class CategoriesProductService {
   constructor(
     @InjectRepository(CategoriesProduct)
     private readonly categoriesProductRepository: Repository<CategoriesProduct>,
-    @InjectRepository(Business)
-    private readonly businessRepository: Repository<Business>,
   ) {}
   async createCategory(createCategoriesProductDto: CreateCategoriesProductDto, businessId: string): Promise<CategoriesProduct> {
     const { name } = createCategoriesProductDto;

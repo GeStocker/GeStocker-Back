@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { CategoriesProductService } from './categories-product.service';
 import { CreateCategoriesProductDto } from './dto/create-categories-product.dto';
 import { UpdateCategoriesProductDto } from './dto/update-categories-product.dto';
@@ -14,9 +14,9 @@ export class CategoriesProductController {
     return this.categoriesProductService.createCategory(createCategoriesProductDto, businessId);
   }
 
-  @Get()
+  @Get('business/:businessId')
   @UseGuards(AuthGuard)
-  getAllCategories(@Body() businessId: string) {
+  getAllCategories(@Param('businessId', ParseUUIDPipe) businessId: string) {
     return this.categoriesProductService.getAllCategories(businessId);
   }
 
