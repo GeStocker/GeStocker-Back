@@ -1,17 +1,31 @@
-import { IsUUID, IsNumber, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsUUID, IsNumber, Min, IsNotEmpty, ArrayMinSize, ValidateNested, IsArray } from 'class-validator';
 
-export class CreateInventoryProductDto {
+export class CreateInventoryProductsDto {
+  @IsUUID()
+  @IsNotEmpty()
+  inventoryId: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => InventoryProductDataDto)
+  products: InventoryProductDataDto[];
+}
+
+export class InventoryProductDataDto {
+  @IsNotEmpty()
   @IsUUID()
   productId: string;
 
-  @IsUUID()
-  inventoryId: string;
-
+  @IsNotEmpty()
   @IsNumber()
-  @Min(0)
+  @Min(1)
   stock: number;
 
+  @IsNotEmpty()
   @IsNumber()
   @Min(0)
   price: number;
 }
+
