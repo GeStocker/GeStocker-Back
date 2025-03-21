@@ -47,7 +47,7 @@ export class BussinesController {
     return this.businessService.updateBusiness(businessId, updateBussineDto, userId);
   }
 
-  @Delete('deactivate/:businessId')
+  @Put('deactivate/:businessId')
   @UseGuards(AuthGuard)
   deactivateBusiness(
     @Param('businessId') businessId: string,

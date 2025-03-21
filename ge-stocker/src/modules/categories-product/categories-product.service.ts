@@ -1,15 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoriesProductDto } from './dto/create-categories-product.dto';
 import { UpdateCategoriesProductDto } from './dto/update-categories-product.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CategoriesProduct } from './entities/categories-product.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CategoriesProductService {
-  create(createCategoriesProductDto: CreateCategoriesProductDto) {
-    return 'This action adds a new categoriesProduct';
+  constructor(
+    @InjectRepository(CategoriesProduct)
+    private readonly categoriesProductRepository: Repository<CategoriesProduct>,
+  ) {}
+  async createCategory(createCategoriesProductDto: CreateCategoriesProductDto, businessId: string): Promise<CategoriesProduct> {
+    const { name } = createCategoriesProductDto;
+    const existingCategory = await this.categoriesProductRepository.findOne({
+      where: { name, business: { id: businessId } },
+    });
+
+    if (existingCategory) return existingCategory;
+
+    const category = this.categoriesProductRepository.create({ name, business: { id: businessId } });
+
+    return await this.categoriesProductRepository.save(category);
   }
 
-  findAll() {
-    return `This action returns all categoriesProduct`;
+  async getAllCategories(businessId: string) {
+    return await this.categoriesProductRepository.find({
+      where: { business: { id: businessId } },
+    });
   }
 
   findOne(id: number) {

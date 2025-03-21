@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, UploadedFile, ParseUUIDPipe, Put, UseInterceptors } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { CustomRequest } from 'src/interfaces/custom-request.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
@@ -14,16 +15,17 @@ export class ProductsController {
   createProduct(
     @Body() createProductDto: CreateProductDto,
     @Req() request: CustomRequest,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const userId = request.user.id;
-    return this.productsService.createProduct(createProductDto, userId);
+    return this.productsService.createProduct(createProductDto, userId, file);
   }
 
 
-  @Get()
+  @Get('business/:businessId')
   @UseGuards(AuthGuard)
-  findAll() {
-    return this.productsService.findAll();
+  getAllProductsByBusiness(@Param('businessId', ParseUUIDPipe) businessId: string) {
+    return this.productsService.getAllProductsByBusiness(businessId);
   }
 
   @Get(':id')
@@ -32,15 +34,20 @@ export class ProductsController {
     return this.productsService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':productId')
   @UseGuards(AuthGuard)
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  @UseInterceptors(FileInterceptor('file'))
+  updateProduct(
+    @Param('id', ParseUUIDPipe) productId: string, 
+    @Body() updateProductDto: UpdateProductDto,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    return this.productsService.updateProduct(productId, updateProductDto, file);
   }
 
-  @Delete(':id')
+  @Put('deactivate/:productId')
   @UseGuards(AuthGuard)
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  deleteProduct(@Param('productId', ParseUUIDPipe) productId: string) {
+    return this.productsService.deleteProduct(productId);
   }
 }
