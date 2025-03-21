@@ -12,8 +12,6 @@ export class InventoryProductsService {
     constructor(
         @InjectRepository(InventoryProduct)
         private readonly inventoryProductRepository: Repository<InventoryProduct>,
-        @InjectRepository(Product)
-        private readonly productRepository: Repository<Product>,
         @InjectRepository(Inventory)
         private readonly inventoryRepository: Repository<Inventory>,
     ) {}
@@ -49,7 +47,7 @@ export class InventoryProductsService {
             where: { id: inventoryProductId },
         });
 
-        if (!inventoryProduct) throw new NotFoundException('Inventory Product not found');
+        if (!inventoryProduct) throw new NotFoundException('Inventory not found');
 
         inventoryProduct.price = updatePriceDto.price;
 
