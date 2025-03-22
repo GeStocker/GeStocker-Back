@@ -33,17 +33,10 @@ export class AuthController {
 @Get('google/callback')
 @UseGuards(GoogleAuthGuard)
 async googleAuthRedirect(@Req() req, @Res() res) {
-  try {
-    const profile = req.user;
-    const user = await this.authService.registerOrUpdateGoogleUser(profile) as { token: string };
-    
-    // Aquí podrías enviar un token en la cookie o en el almacenamiento local
-    res.cookie('token', user.token, { httpOnly: true });
-    return res.redirect('http://localhost:3001/login');
-  } catch (error) {
-    // Manejo de errores
-    console.error(error);
-    return res.redirect('http://localhost:3001/error'); // Redirigir a una página de error
-  }
+  const profile = req.user;
+  await this.authService.registerOrUpdateGoogleUser(profile);
+  const loginResponse = await this.authService.loginWithGoogle(profile);
+  res.cookie('token', loginResponse.token, { httpOnly: true });
+  return res.redirect('http://localhost:3001/dashboard/perfil');
 }
 }

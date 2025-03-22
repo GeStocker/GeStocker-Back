@@ -95,14 +95,12 @@ export class AuthService {
       where: { email },
     });
   
-    if (user) {
-      throw new NotFoundException('Usuario ya registrado');
+    if (!user) {
+      user = await this.userRepository.save({
+        name: `${firstName} ${lastName}`,
+        email,
+      });
     }
-
-    user = await this.userRepository.save({
-      name: `${firstName} ${lastName}`,
-      email
-    });
   
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
