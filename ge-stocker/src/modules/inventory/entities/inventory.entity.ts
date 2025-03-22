@@ -1,4 +1,5 @@
 import { Business } from 'src/modules/bussines/entities/bussines.entity';
+import { IncomingShipment } from 'src/modules/incoming-shipment/entities/incoming-shipment.entity';
 import { InventoryProduct } from 'src/modules/inventory-products/entities/inventory-products.entity';
 import {
   JoinColumn,
@@ -48,4 +49,7 @@ export class Inventory {
 
   @OneToMany(() => InventoryProduct, (inventoryProduct) => inventoryProduct.inventory)
   inventoryProducts: InventoryProduct[];
+
+  @OneToMany(() => IncomingShipment, (incomingShipment) => incomingShipment.inventory)
+  incomingShipments: IncomingShipment[];
 }
