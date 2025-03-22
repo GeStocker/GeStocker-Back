@@ -32,7 +32,7 @@ async googleAuthRedirect(@Req() req, @Res() res) {
 @UseGuards(GoogleAuthGuard)
 async googleLogin(@Req() req, @Res() res) {
   const profile = req.user;
-  await this.authService.loginWithGoogle(profile);
-  return res.redirect('http://localhost:3001/dashboard/perfil');
+  const user = await this.authService.loginWithGoogle(profile);
+  return res.redirect('http://localhost:3001/dashboard/perfil').cookie('token', user.token, { httpOnly: true });
 }
 }

@@ -72,6 +72,12 @@ export class User {
   @Column({ type: 'simple-array', default: [UserRole.BASIC] })
   roles: UserRole[]
 
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  img: string;
+
   @Column({ default: true })
   isActive: boolean;
 
