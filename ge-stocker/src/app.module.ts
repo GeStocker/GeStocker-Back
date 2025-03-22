@@ -10,6 +10,7 @@ import { EnvConfig } from './config/env.config';
 import { JwtModule } from '@nestjs/jwt';
 import { FilesModule } from './modules/files/files.module';
 import { InventoryProductsModule } from './modules/inventory-products/inventory-products.module';
+import { IncomingShipmentModule } from './modules/incoming-shipment/incoming-shipment.module';
 
 
 @Module({
@@ -28,7 +29,8 @@ import { InventoryProductsModule } from './modules/inventory-products/inventory-
     AuthModule, 
     BussinesModule,
     InventoryProductsModule,
-    FilesModule
+    FilesModule,
+    IncomingShipmentModule
   ], 
   controllers: [],
   providers: [],
