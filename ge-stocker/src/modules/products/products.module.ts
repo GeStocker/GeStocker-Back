@@ -7,9 +7,10 @@ import { CategoriesProduct } from '../categories-product/entities/categories-pro
 import { FilesService } from '../files/files.service';
 import { Product } from './entities/product.entity';
 import { CloudinaryRepository } from '../files/files.repository';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product,Business, CategoriesProduct])],
+  imports: [TypeOrmModule.forFeature([Product,Business, CategoriesProduct, User])],
   controllers: [ProductsController],
   providers: [ProductsService, FilesService, CloudinaryRepository],
 })

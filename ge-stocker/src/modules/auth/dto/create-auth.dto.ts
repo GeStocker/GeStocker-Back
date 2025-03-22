@@ -41,7 +41,8 @@ export class CreateAuthDto {
   roles: UserRole[];
 
   @IsOptional()
-  img: UserRole[];
+  @IsString()
+  img: string;
 }
 
 export class LoginAuthDto {
