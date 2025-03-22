@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get, Req, UseGuards, Res } from '@nestjs/common
 import { AuthService } from './auth.service';
 import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
 import { GoogleAuthGuard } from './authGoogle.guard';
+import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +31,7 @@ async googleAuthRedirect(@Req() req, @Res() res) {
 
 @Get('google/login')
 @UseGuards(GoogleAuthGuard)
-async googleLogin(@Req() req, @Res() res) {
+async googleLogin(@Req() req: CustomRequest, @Res() res) {
   const profile = req.user;
   const user = await this.authService.loginWithGoogle(profile);
   return res.redirect('http://localhost:3001/dashboard/perfil').json('token', user, { httpOnly: true });
