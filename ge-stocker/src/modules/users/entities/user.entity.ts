@@ -75,6 +75,7 @@ export class User {
   @Column({
     type: 'text',
     nullable: true,
+    default: 'https://res.cloudinary.com/dikjpvebs/image/upload/v1742661335/icon_dlepud.jpg'
   })
   img: string;
 
