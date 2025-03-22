@@ -33,6 +33,6 @@ async googleAuthRedirect(@Req() req, @Res() res) {
 async googleLogin(@Req() req, @Res() res) {
   const profile = req.user;
   const user = await this.authService.loginWithGoogle(profile);
-  return res.redirect('http://localhost:3001/dashboard/perfil').cookie('token', user.token, { httpOnly: true });
+  return res.redirect('http://localhost:3001/dashboard/perfil').json('token', user, { httpOnly: true });
 }
 }
