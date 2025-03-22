@@ -27,4 +27,12 @@ async googleAuthRedirect(@Req() req, @Res() res) {
   await this.authService.registerOrUpdateGoogleUser(profile);
   return res.redirect('http://localhost:3001/login');
 }
+
+@Get('google/login')
+@UseGuards(GoogleAuthGuard)
+async googleLogin(@Req() req, @Res() res) {
+  const profile = req.user;
+  await this.authService.loginWithGoogle(profile);
+  return res.redirect('http://localhost:3001/dashboard/perfil');
+}
 }

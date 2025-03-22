@@ -106,4 +106,35 @@ export class AuthService {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
+  async loginWithGoogle(profile: any): Promise<{ success: string; token: string }> {
+    const { email } = profile;
+    let user = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('Usuario no registrado');
+    }
+    
+    const userPayload = {
+      id: user.id,
+      email: user.email,
+      roles: [
+        UserRole.BASIC ||
+          UserRole.PROFESIONAL ||
+          UserRole.BUSINESS ||
+          UserRole.ADMIN ||
+          UserRole.SUPERADMIN,
+      ],
+      
+    };
+
+
+    const token = this.JwtService.sign(userPayload, { expiresIn: '1h' });
+
+    return {
+      success: 'Inicio de sesion exitoso, firma creada por 1 hora',
+      token,
+    };
+  }
 }
