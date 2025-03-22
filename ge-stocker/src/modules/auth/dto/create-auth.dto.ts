@@ -1,4 +1,4 @@
-import { ArrayMaxSize, IsArray, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsString, Validate } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Validate } from 'class-validator';
 import { MatchPassword } from 'src/helpers/passwordMatcher';
 import { UserRole } from 'src/interfaces/roles.enum';
 
@@ -39,6 +39,9 @@ export class CreateAuthDto {
   @ArrayMaxSize(1)
   @IsEnum(UserRole, { each: true })
   roles: UserRole[];
+
+  @IsOptional()
+  img: UserRole[];
 }
 
 export class LoginAuthDto {

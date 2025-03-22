@@ -47,6 +47,7 @@ export class AuthService {
       email,
       password: hashedPassword,
       roles: [role],
+      img: '', // Ensure img is a string
     });
 
     const { password: _, ...userWithoutPassword } = newUser;
@@ -115,7 +116,6 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Usuario no registrado');
     }
-    
     const userPayload = {
       id: user.id,
       email: user.email,
