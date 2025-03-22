@@ -1,0 +1,95 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IncomingShipment } from './entities/incoming-shipment.entity';
+import { Repository } from 'typeorm';
+import { IncomingProduct } from './entities/incoming-products.entity';
+import { Product } from '../products/entities/product.entity';
+import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
+import { Inventory } from '../inventory/entities/inventory.entity';
+import { CreateIncomingShipmentDto } from './dto/create-incoming-shipment.dto';
+
+@Injectable()
+export class IncomingShipmentService {
+    constructor(
+        @InjectRepository(IncomingShipment)
+        private readonly incomingShipmentRepository: Repository<IncomingShipment>,
+        @InjectRepository(IncomingProduct)
+        private readonly incomingProductRepository: Repository<IncomingProduct>,
+        @InjectRepository(Product)
+        private readonly productRepository: Repository<Product>,
+        @InjectRepository(InventoryProduct)
+        private readonly inventoryProductRepository: Repository<InventoryProduct>,
+        @InjectRepository(Inventory)
+        private readonly inventoryRepository: Repository<Inventory>,
+    ) {}
+
+    async registerIncomingShipment(createIncomingShipmentDto: CreateIncomingShipmentDto, businessId: string, inventoryId: string) {
+        const { products, date } = createIncomingShipmentDto;
+
+        const incomingShipment = this.incomingShipmentRepository.create({
+            date: date || new Date(),
+        });
+
+        const inventory = await this.inventoryRepository.findOne({
+            where: { id: inventoryId,  business: { id: businessId } },
+        });
+        
+        if (!inventory) throw new NotFoundException('Inventario no encontrado');
+
+        incomingShipment.inventory = inventory;
+
+        let totalPrice = 0;
+
+        for (const prod of products) {
+            let product = await this.productRepository.findOne({
+                where: { id: prod.productId, business: { id: businessId }},
+            });
+
+            if (!product) {
+                product = this.productRepository.create({
+                    name: prod.name,
+                    description: prod.description,
+                    business: { id: businessId },
+                });
+
+                await this.productRepository.save(product);
+            }
+
+            let inventoryProduct = await this.inventoryProductRepository.findOne({
+                where: { product: { id: product.id }, inventory: { id: inventoryId } },
+            });
+
+            if (!inventoryProduct) {
+                inventoryProduct = this.inventoryProductRepository.create({
+                    product,
+                    inventory,
+                    stock: prod.quantity,
+                    price: 0,
+                });
+
+                await this.inventoryProductRepository.save(inventoryProduct);
+            } else {
+                inventoryProduct.stock += prod.quantity;
+                await this.inventoryProductRepository.save(inventoryProduct);
+            };
+
+            const incomingProduct = this.incomingProductRepository.create({
+                shipment: incomingShipment,
+                product,
+                quantity: prod.quantity,
+                purchasePrice: prod.purchasePrice,
+                totalPrice: prod.quantity * prod.purchasePrice,
+            });
+
+            await this.incomingProductRepository.save(incomingProduct);
+
+            totalPrice += prod.quantity * prod.purchasePrice;
+        }
+
+        incomingShipment.totalPrice = totalPrice;
+
+        await this.incomingShipmentRepository.save(incomingShipment);
+
+        return incomingShipment;
+    }
+}
