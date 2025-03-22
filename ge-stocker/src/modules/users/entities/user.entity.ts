@@ -35,13 +35,14 @@ export class User {
   @Column({
     type: 'varchar',
     length: 100,
-    nullable: false,
+    nullable: true,
   })
   password: string;
 
   @Column({
     type: 'varchar',
     length: 15,
+    nullable: true,
   })
   phone: string;
 
@@ -61,6 +62,7 @@ export class User {
 
   @Column({
     type: 'text',
+    nullable: true,
   })
   address: string;
 
