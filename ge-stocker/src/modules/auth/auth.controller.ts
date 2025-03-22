@@ -19,21 +19,31 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  async googleAuth(@Req() req) {}
+  async googleAuth(@Req() req) { }
 
-  @Get('google/callback')
+  @Get('google/login')
 @UseGuards(GoogleAuthGuard)
-async googleAuthRedirect(@Req() req, @Res() res) {
-  const profile = req.user;
-  await this.authService.registerOrUpdateGoogleUser(profile);
-  return res.redirect('http://localhost:3001/login');
-}
-
-@Get('google/login')
-@UseGuards(GoogleAuthGuard)
-async googleLogin(@Req() req: CustomRequest, @Res() res) {
+  async googleLogin(@Req() req: CustomRequest, @Res() res) {
   const profile = req.user;
   const user = await this.authService.loginWithGoogle(profile);
-  return res.redirect('http://localhost:3001/dashboard/perfil').json('token', user, { httpOnly: true });
+  res.cookie('token', user.token, { httpOnly: true });
+  return res.redirect('http://localhost:3001/dashboard/perfil');
+}
+
+@Get('google/callback')
+@UseGuards(GoogleAuthGuard)
+async googleAuthRedirect(@Req() req, @Res() res) {
+  try {
+    const profile = req.user;
+    const user = await this.authService.registerOrUpdateGoogleUser(profile) as { token: string };
+    
+    // Aquí podrías enviar un token en la cookie o en el almacenamiento local
+    res.cookie('token', user.token, { httpOnly: true });
+    return res.redirect('http://localhost:3001/login');
+  } catch (error) {
+    // Manejo de errores
+    console.error(error);
+    return res.redirect('http://localhost:3001/error'); // Redirigir a una página de error
+  }
 }
 }
