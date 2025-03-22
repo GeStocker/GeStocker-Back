@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { InventoryProductsService } from './inventory-products.service';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '../auth/auth.guard';
 import { CreateInventoryProductsDto } from './dto/create-inventory-product.dto';
 import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-inventory-product.dto';
 
