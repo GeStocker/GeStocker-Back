@@ -38,7 +38,7 @@ export class UsersService {
     }
 
     if (file) {
-      const uploadResult = await this.cloudinaryService.updateProductImage(file, userFound.id);
+      const uploadResult = await this.cloudinaryService.updateUserImage(file, userFound.id);
       updateUserDto['img'] = uploadResult.secure_url;
     };
 

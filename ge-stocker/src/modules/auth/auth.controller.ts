@@ -26,7 +26,7 @@ export class AuthController {
   async googleLogin(@Req() req: CustomRequest, @Res() res) {
   const profile = req.user;
   const user = await this.authService.loginWithGoogle(profile);
-  res.cookie('token', user.token, { httpOnly: true });
+  res.cookie('token', user.token, { httpOnly: false });
   return res.redirect('http://localhost:3001/dashboard/perfil');
 }
 
@@ -36,7 +36,7 @@ async googleAuthRedirect(@Req() req, @Res() res) {
   const profile = req.user;
   await this.authService.registerOrUpdateGoogleUser(profile);
   const loginResponse = await this.authService.loginWithGoogle(profile);
-  res.cookie('token', loginResponse.token, { httpOnly: true });
+  res.cookie('token', loginResponse.token, { httpOnly: false });
   return res.redirect('http://localhost:3001/dashboard/perfil');
 }
 }
