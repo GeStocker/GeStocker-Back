@@ -27,7 +27,7 @@ async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
   const profile = req.user;
   await this.authService.registerOrUpdateGoogleUser(profile);
   const loginResponse = await this.authService.loginWithGoogle(profile);
-  res.cookie('token', loginResponse.token, { httpOnly: true });
+  res.cookie('token', loginResponse.token, { httpOnly: false });
   return res.redirect('http://localhost:3001/dashboard/perfil');
 }
 }
