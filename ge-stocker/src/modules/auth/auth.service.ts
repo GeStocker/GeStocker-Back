@@ -19,7 +19,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly JwtService: JwtService,
-  ) {}
+  ) { }
 
   async registerUser(user: CreateAuthDto): Promise<Partial<User>> {
     const {
@@ -47,7 +47,7 @@ export class AuthService {
       email,
       password: hashedPassword,
       roles: [role],
-      img: '', // Ensure img is a string
+      img: '',
     });
 
     const { password: _, ...userWithoutPassword } = newUser;
@@ -72,12 +72,12 @@ export class AuthService {
       email: user.email,
       roles: [
         UserRole.BASIC ||
-          UserRole.PROFESIONAL ||
-          UserRole.BUSINESS ||
-          UserRole.ADMIN ||
-          UserRole.SUPERADMIN,
+        UserRole.PROFESIONAL ||
+        UserRole.BUSINESS ||
+        UserRole.ADMIN ||
+        UserRole.SUPERADMIN,
       ],
-      
+
     };
 
 
@@ -90,41 +90,45 @@ export class AuthService {
   }
   async registerOrUpdateGoogleUser(profile: any): Promise<Partial<User>> {
     const { email, firstName, lastName } = profile;
-  
+
     let user = await this.userRepository.findOne({
       where: { email },
     });
-  
+
     if (!user) {
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
       });
     }
-  
+
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
   async loginWithGoogle(profile: any): Promise<{ success: string; token: string }> {
-    const { email } = profile;
+    const { email, firstName, lastName, picture } = profile;
     let user = await this.userRepository.findOne({
       where: { email },
     });
     if (!user) {
-      throw new NotFoundException('Usuario no registrado');
+      user = await this.userRepository.save({
+        name: `${firstName} ${lastName}`,
+        email,
+        img: picture,
+      });
     }
     const userPayload = {
       id: user.id,
       email: user.email,
       roles: [
         UserRole.BASIC ||
-          UserRole.PROFESIONAL ||
-          UserRole.BUSINESS ||
-          UserRole.ADMIN ||
-          UserRole.SUPERADMIN,
+        UserRole.PROFESIONAL ||
+        UserRole.BUSINESS ||
+        UserRole.ADMIN ||
+        UserRole.SUPERADMIN,
       ],
-      
+
     };
 
 

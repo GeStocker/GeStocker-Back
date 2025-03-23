@@ -26,7 +26,7 @@ export class UsersController {
   @Patch(':id')
   @UseGuards(AuthGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @UploadedFile() file?: Express.Multer.File) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, file);
   }
 
   @Delete(':id')
