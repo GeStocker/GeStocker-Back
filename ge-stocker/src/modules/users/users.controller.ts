@@ -1,10 +1,11 @@
-import { Controller, Get, Body, Patch, Param, Delete, UseGuards, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserRole } from '../../interfaces/roles.enum';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
@@ -25,6 +26,7 @@ export class UsersController {
 
   @Patch(':id')
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @UploadedFile() file?: Express.Multer.File) {
     return this.usersService.update(id, updateUserDto, file);
   }
