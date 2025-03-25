@@ -18,7 +18,7 @@ async function bootstrap() {
     SwaggerModule.setup('docs', app, document);
 
     app.enableCors({
-      origin: ['http://localhost:3001', 'https://ge-stocker.vercel.app '],
+      origin: ['http://localhost:3001', 'https://ge-stocker.vercel.app'],
       methods: 'GET, PUT, POST, DELETE, PATCH',
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
