@@ -89,7 +89,7 @@ export class AuthService {
     };
   }
   async registerOrUpdateGoogleUser(profile: any): Promise<Partial<User>> {
-    const { email, firstName, lastName } = profile;
+    const { email, firstName, lastName, picture } = profile;
 
     let user = await this.userRepository.findOne({
       where: { email },
@@ -99,6 +99,7 @@ export class AuthService {
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
+        img: picture
       });
     }
 
