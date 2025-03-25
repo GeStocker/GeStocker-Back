@@ -17,12 +17,12 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('docs', app, document);
 
-  app.enableCors({
-    origin: 'http://localhost:3001',
-    methods: 'GET, PUT, POST, DELETE, PATCH',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  });
+    app.enableCors({
+      origin: ['http://localhost:3001', 'https://ge-stocker.vercel.app '],
+      methods: 'GET, PUT, POST, DELETE, PATCH',
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    });
 
   const logger = new LoggerMiddleware();
   app.useGlobalPipes(new ValidationPipe({whitelist: true}));
