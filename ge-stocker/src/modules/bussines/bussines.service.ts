@@ -39,14 +39,14 @@ export class BussinesService {
   async getUserBusinesses(userId: string): Promise<Business[]> {
     return await this.businessRepository.find({
       where: { user: { id: userId } },
-      relations: ['inventories'],
+      relations: ['inventories', 'user'],
     });
   }
 
   async getUserBusinessById(businessId: string, userId: string): Promise<Business> {
     const business = await this.businessRepository.findOne({
       where: { id: businessId, user: { id: userId } },
-      relations: ['inventories'],
+      relations: ['inventories', 'user'],
     });
 
     if(!business) throw new NotFoundException('Business not found or not accesible');
