@@ -31,7 +31,7 @@ export class Product {
     })
     img: string;
 
-    @Column()
+    @Column( { default: true })
     isActive: boolean;
 
     @CreateDateColumn()
