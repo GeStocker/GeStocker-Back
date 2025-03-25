@@ -35,7 +35,7 @@ export class Inventory {
     length: 50,
     nullable: true,
   })
-  adress: string;
+  address: string;
 
   @CreateDateColumn()
   createdAt: Date;
