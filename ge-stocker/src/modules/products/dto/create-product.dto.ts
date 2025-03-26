@@ -20,8 +20,4 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
   category: string;
-
-  @IsNotEmpty()
-  @IsUUID()
-  businessId: string;
 }
