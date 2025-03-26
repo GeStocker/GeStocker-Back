@@ -45,15 +45,7 @@ export class IncomingShipmentService {
                 where: { id: prod.productId, business: { id: businessId }},
             });
 
-            if (!product) {
-                product = this.productRepository.create({
-                    name: prod.name,
-                    description: prod.description,
-                    business: { id: businessId },
-                });
-
-                await this.productRepository.save(product);
-            }
+            if (!product) throw new NotFoundException('Un producto no existe. Primero crealo en el negocio!')
 
             let inventoryProduct = await this.inventoryProductRepository.findOne({
                 where: { product: { id: product.id }, inventory: { id: inventoryId } },
