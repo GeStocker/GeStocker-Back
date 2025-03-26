@@ -2,10 +2,6 @@ import { Type } from 'class-transformer';
 import { IsUUID, IsNumber, Min, IsNotEmpty, ArrayMinSize, ValidateNested, IsArray } from 'class-validator';
 
 export class CreateInventoryProductsDto {
-  @IsUUID()
-  @IsNotEmpty()
-  inventoryId: string;
-
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
