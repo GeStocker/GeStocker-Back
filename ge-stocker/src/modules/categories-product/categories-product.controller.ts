@@ -6,12 +6,18 @@ import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('categories-product')
 export class CategoriesProductController {
-  constructor(private readonly categoriesProductService: CategoriesProductService) {}
+  constructor(private readonly categoriesProductService: CategoriesProductService) { }
 
-  @Post()
+  @Post(':businessId')
   @UseGuards(AuthGuard)
-  createCategory(@Body() createCategoriesProductDto: CreateCategoriesProductDto, businessId: string) {
-    return this.categoriesProductService.createCategory(createCategoriesProductDto, businessId);
+  async createCategory(
+    @Body() createCategoriesProductDto: CreateCategoriesProductDto,
+    @Param('businessId') businessId: string
+  ) {
+    return this.categoriesProductService.createCategory(
+      createCategoriesProductDto,
+      businessId
+    );
   }
 
   @Get('business/:businessId')
