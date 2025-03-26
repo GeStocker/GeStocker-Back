@@ -31,9 +31,12 @@ export class CategoriesProductController {
     return this.categoriesProductService.findOne(+id);
   }
 
-  @Patch(':id')
-  updateCategory(@Param('id') id: string, @Body() updateCategoriesProductDto: UpdateCategoriesProductDto) {
-    return this.categoriesProductService.updateCategory(id, updateCategoriesProductDto);
+  @Patch(':businessId/:id')
+  updateCategory(
+    @Param('businessId') businessId: string,
+    @Param('id') id: string,
+    @Body() updateCategoriesProductDto: UpdateCategoriesProductDto) {
+    return this.categoriesProductService.updateCategory(id, businessId, updateCategoriesProductDto);
   }
 
   @Delete(':id')
