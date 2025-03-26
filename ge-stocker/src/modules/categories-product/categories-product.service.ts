@@ -63,6 +63,8 @@ export class CategoriesProductService {
     if (!category) throw new NotFoundException('Categoria no encontrada');
 
     category.name = name ?? category.name;
+
+    return await this.categoriesProductRepository.save(category);
   }
 
   remove(id: number) {
