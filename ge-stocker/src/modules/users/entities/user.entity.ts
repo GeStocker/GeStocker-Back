@@ -10,6 +10,7 @@ import {
 import { Business } from 'src/modules/bussines/entities/bussines.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { SubscriptionPlan, SubscriptionStatus } from 'src/interfaces/subscriptions.enum';
+import { Payment } from 'src/modules/payments/entities/payment.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -77,4 +78,7 @@ export class User {
   @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'business_id' })
   businesses: Business[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 }
