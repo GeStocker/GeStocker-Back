@@ -3,11 +3,11 @@ import { IncomingShipmentService } from './incoming-shipment.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateIncomingShipmentDto } from './dto/create-incoming-shipment.dto';
 
-@Controller('incoming-shipment/:businessId/:inventoryId')
+@Controller('incoming-shipment')
 export class IncomingShipmentController {
   constructor(private readonly incomingShipmentService: IncomingShipmentService) {}
 
-  @Post()
+  @Post(':businessId/:inventoryId')
   @UseGuards(AuthGuard)
   registerIncomingShipment(
     @Body() createIncomingShipmentDto: CreateIncomingShipmentDto,

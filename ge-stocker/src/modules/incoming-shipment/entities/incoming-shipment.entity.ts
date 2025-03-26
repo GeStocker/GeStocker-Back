@@ -10,7 +10,7 @@ export class IncomingShipment {
     @CreateDateColumn()
     date: Date;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
+    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
     totalPrice: number;
 
     @OneToMany(() => IncomingProduct, (product) => product.shipment, {
