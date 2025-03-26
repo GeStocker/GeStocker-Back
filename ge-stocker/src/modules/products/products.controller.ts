@@ -10,7 +10,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post('businessId')
+  @Post(':businessId')
   @UseGuards(AuthGuard)
   createProduct(
     @Body() createProductDto: CreateProductDto,

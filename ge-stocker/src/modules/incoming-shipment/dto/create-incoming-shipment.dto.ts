@@ -16,16 +16,7 @@ export class CreateIncomingShipmentDto {
 export class IncomingProductDto {
     @IsOptional()
     @IsUUID()
-    productId?: string;
-
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    name?: string;
-
-    @IsOptional()
-    @IsString()
-    description?: string;
+    productId: string;
 
     @IsNumber()
     @Min(1)
