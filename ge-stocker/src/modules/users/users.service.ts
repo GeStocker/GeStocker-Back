@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { UpdateAuthDto } from '../auth/dto/update-auth.dto';
 import { FilesService } from '../files/files.service';
 
+
 @Injectable()
 export class UsersService {
   constructor (
