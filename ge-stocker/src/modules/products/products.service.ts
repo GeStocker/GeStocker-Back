@@ -19,12 +19,11 @@ export class ProductsService {
     private readonly categoriesProductRepository: Repository<CategoriesProduct>,
     private readonly cloudinaryService: FilesService
   ) {}
-  async createProduct(createProductDto: CreateProductDto, userId: string, file?: Express.Multer.File) {
-    const { name, description, category, businessId } = createProductDto;
+  async createProduct(createProductDto: CreateProductDto, userId: string, businessId: string, file?: Express.Multer.File) {
+    const { name, description, category } = createProductDto;
 
     const business = await this.businessRepository.findOne({
       where: {id: businessId, user: {id: userId } },
-      relations: ['categories'],
     });
 
     if (!business) throw new NotFoundException('Business not found!');
@@ -64,7 +63,6 @@ export class ProductsService {
   async getAllProductsByBusiness(businessId: string) {
     return await this.productRepository.find({
       where: { business: { id: businessId }, isActive: true },
-      relations: ['category'],
     });
   }
 

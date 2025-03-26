@@ -53,6 +53,6 @@ export class Business {
   @OneToMany(() => Product, (product) => product.business)
   products: Product[];
 
-  @ManyToOne(() => CategoriesProduct, (category) => category.business)
+  @OneToMany(() => CategoriesProduct, (category) => category.business)
   categories: CategoriesProduct[];
 }
