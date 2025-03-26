@@ -53,8 +53,16 @@ export class CategoriesProductService {
     return `This action returns a #${id} categoriesProduct`;
   }
 
-  update(id: number, updateCategoriesProductDto: UpdateCategoriesProductDto) {
-    return `This action updates a #${id} categoriesProduct`;
+  async updateCategory(id: string, updateCategoriesProductDto: UpdateCategoriesProductDto) {
+    const { name } = updateCategoriesProductDto;
+
+    const category = await this.categoriesProductRepository.findOne({
+      where: { id: id },
+    })
+
+    if (!category) throw new NotFoundException('Categoria no encontrada');
+
+    category.name = name ?? category.name;
   }
 
   remove(id: number) {

@@ -32,8 +32,8 @@ export class CategoriesProductController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoriesProductDto: UpdateCategoriesProductDto) {
-    return this.categoriesProductService.update(+id, updateCategoriesProductDto);
+  updateCategory(@Param('id') id: string, @Body() updateCategoriesProductDto: UpdateCategoriesProductDto) {
+    return this.categoriesProductService.updateCategory(id, updateCategoriesProductDto);
   }
 
   @Delete(':id')
