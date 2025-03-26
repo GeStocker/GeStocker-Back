@@ -10,17 +10,17 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post()
+  @Post('businessId')
   @UseGuards(AuthGuard)
   createProduct(
     @Body() createProductDto: CreateProductDto,
+    @Param('businessId') businessId: string,
     @Req() request: CustomRequest,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const userId = request.user.id;
-    return this.productsService.createProduct(createProductDto, userId, file);
+    return this.productsService.createProduct(createProductDto, userId, businessId, file);
   }
-
 
   @Get('business/:businessId')
   @UseGuards(AuthGuard)
