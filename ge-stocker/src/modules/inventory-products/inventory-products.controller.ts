@@ -8,12 +8,12 @@ import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-invento
 export class InventoryProductsController {
   constructor(private readonly inventoryProductsService: InventoryProductsService) {}
 
-  @Post()
+  @Post(':inventoryId')
   @UseGuards(AuthGuard)
   addProductsToInventory(
-    @Body() createInventoryProductsDto: CreateInventoryProductsDto
+    @Body() createInventoryProductsDto: CreateInventoryProductsDto,
+    @Param('inventoryId') inventoryId: string,
   ) {
-    const inventoryId = createInventoryProductsDto.inventoryId;
     const products = createInventoryProductsDto.products;
     return this.inventoryProductsService.addProductsToInventory(inventoryId, products)
   };
