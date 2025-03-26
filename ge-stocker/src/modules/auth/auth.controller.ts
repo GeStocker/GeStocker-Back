@@ -28,6 +28,6 @@ async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
   await this.authService.registerOrUpdateGoogleUser(profile);
   const loginResponse = await this.authService.loginWithGoogle(profile);
   res.cookie('token', loginResponse.token, { httpOnly: false });
-  return res.redirect('https://gestocker-back.onrender.com/dashboard/perfil');
+  return res.redirect('https://ge-stocker.vercel.app/dashboard/perfil');
 }
 }

@@ -11,7 +11,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         super({
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: 'https://ge-stocker.vercel.app/auth/google/callback',
+            callbackURL: 'https://gestocker-back.onrender.com/auth/google/callback',
             scope: ['email', 'profile'],
         });
     }
