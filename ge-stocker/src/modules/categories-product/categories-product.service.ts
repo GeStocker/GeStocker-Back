@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoriesProductDto } from './dto/create-categories-product.dto';
 import { UpdateCategoriesProductDto } from './dto/update-categories-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesProduct } from './entities/categories-product.entity';
-import { Repository } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { Business } from '../bussines/entities/bussines.entity';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class CategoriesProductService {
   
     const existingCategory = await this.categoriesProductRepository.findOne({
       where: {
-        name,
+        name: ILike(name.trim()),
         business: { id: businessId }
       },
       relations: ['business']
@@ -53,14 +53,26 @@ export class CategoriesProductService {
     return `This action returns a #${id} categoriesProduct`;
   }
 
-  async updateCategory(id: string, updateCategoriesProductDto: UpdateCategoriesProductDto) {
+  async updateCategory(id: string, businessId: string, updateCategoriesProductDto: UpdateCategoriesProductDto) {
     const { name } = updateCategoriesProductDto;
 
     const category = await this.categoriesProductRepository.findOne({
-      where: { id: id },
+      where: { id: id, business: { id: businessId } },
     })
 
     if (!category) throw new NotFoundException('Categoria no encontrada');
+
+    if (name) {
+      const existingCategory = await this.categoriesProductRepository.findOne({
+        where: {
+          name: ILike(name.trim()),
+          business: { id: businessId},
+          id: Not(id),
+        },
+      });
+
+      if (existingCategory) throw new ConflictException(`Ya existe una categoria con el nombre "${name}" en este negocio.`)
+    }
 
     category.name = name ?? category.name;
 
