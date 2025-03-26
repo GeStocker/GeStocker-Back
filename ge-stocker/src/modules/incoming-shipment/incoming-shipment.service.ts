@@ -41,6 +41,8 @@ export class IncomingShipmentService {
 
         let totalPrice = 0;
 
+        const incomingProducts: IncomingProduct[] = [];
+
         for (const prod of products) {
             let product = await this.productRepository.findOne({
                 where: { id: prod.productId, business: { id: businessId }},
@@ -78,10 +80,12 @@ export class IncomingShipmentService {
                 
             await this.incomingProductRepository.save(incomingProduct);
 
+            incomingProducts.push(incomingProduct);
             totalPrice += prod.quantity * prod.purchasePrice;
         }
 
         incomingShipment.totalPrice = totalPrice;
+        incomingShipment.products = incomingProducts;
 
         await this.incomingShipmentRepository.save(incomingShipment);
 
