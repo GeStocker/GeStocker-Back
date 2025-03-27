@@ -4,31 +4,40 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1); 
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Gestocker')
     .setDescription('API para gestionar inventarios')
-    .setVersion('1.0.0')  
+    .setVersion('1.0.0')
     .addBearerAuth()
-    .build();2
+    .build();
 
-    const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swaggerConfig));
 
-    app.enableCors({
-      origin: ['http://localhost:3001', 'https://ge-stocker.vercel.app'],
-      methods: 'GET, PUT, POST, DELETE, PATCH',
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      credentials: true,
-    });
+  app.enableCors({
+    origin: [
+      'http://localhost:3001',
+      'https://ge-stocker.vercel.app',
+      'https://tu-frontend.com'
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    credentials: true,
+    exposedHeaders: ['Set-Cookie'] 
+  });
 
-  const logger = new LoggerMiddleware();
-  app.use(cookieParser())
-  app.useGlobalPipes(new ValidationPipe({whitelist: true}));
-  app.use(logger.use);
-  await app.listen(process.env.PORT ?? 3000);
+  app.use(cookieParser());
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.use((new LoggerMiddleware()).use);
+
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
