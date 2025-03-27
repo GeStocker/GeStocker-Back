@@ -12,6 +12,7 @@ export class ProductsController {
 
   @Post(':businessId')
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
   createProduct(
     @Body() createProductDto: CreateProductDto,
     @Param('businessId') businessId: string,
