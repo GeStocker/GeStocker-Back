@@ -23,7 +23,7 @@ export class AuthController {
 
 @Get('google/callback')
 @UseGuards(GoogleAuthGuard)
-async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
+async googleAuthRedirect(@Req() req: CustomRequest, @Res({ passthrough: true }) res ) {
   const profile = req.user;
   await this.authService.registerOrUpdateGoogleUser(profile);
   const loginResponse = await this.authService.loginWithGoogle(profile);
