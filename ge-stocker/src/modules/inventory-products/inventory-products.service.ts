@@ -40,7 +40,7 @@ export class InventoryProductsService {
             .createQueryBuilder('inventoryProduct')
             .leftJoinAndSelect('inventoryProduct.product', 'product')
             .leftJoinAndSelect('product.category', 'category')
-            .where('inventoryProduct.inventoryId = :inventoryId', { inventoryId })
+            .where('inventoryProduct.inventory = :inventoryId', { inventoryId })
             .getMany();
     };
 

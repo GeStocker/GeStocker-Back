@@ -13,6 +13,8 @@ import { InventoryProductsModule } from './modules/inventory-products/inventory-
 import { IncomingShipmentModule } from './modules/incoming-shipment/incoming-shipment.module';
 import { CollaboratorsModule } from './modules/collaborators/collaborators.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { SalesOrderModule } from './modules/sales-order/sales-order.module';
+import { OutgoingProductModule } from './modules/outgoing-product/outgoing-product.module';
 
 
 @Module({
@@ -34,7 +36,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
     FilesModule,
     IncomingShipmentModule,
     CollaboratorsModule,
-    PaymentsModule
+    PaymentsModule,
+    SalesOrderModule,
+    OutgoingProductModule
   ], 
   controllers: [],
   providers: [],
