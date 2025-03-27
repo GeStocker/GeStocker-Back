@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
@@ -11,7 +10,6 @@ import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { UserRole } from '../../interfaces/roles.enum';
 import { JwtService } from '@nestjs/jwt';
-import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class AuthService {

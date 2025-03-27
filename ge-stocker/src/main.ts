@@ -24,8 +24,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3001',
-      'https://ge-stocker.vercel.app',
-      'https://tu-frontend.com'
+      'https://ge-stocker.vercel.app'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],

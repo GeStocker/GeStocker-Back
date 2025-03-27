@@ -29,12 +29,12 @@ export class AuthController {
     const loginResponse = await this.authService.loginWithGoogle(profile);
     console.log('Token generado:', loginResponse.token);
     res.cookie('token', loginResponse.token, {
-      httpOnly: true,
-      secure: true, // SOLO para HTTPS
-      sameSite: 'none', // Obligatorio para cross-domain
-      domain: '.vercel.app', // Dominio padre
+      secure: true,          // Obligatorio en HTTPS
+      sameSite: 'none',      // Para cross-domain
+      httpOnly: false,       // Si necesitas leerla desde el front
+      domain: '.onrender.com', // ¡Dominio del BACKEND, no del frontend! 🔥
+      maxAge: 3600000,
       path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
   
     console.log('Cookies establecidas:', res.getHeaders()['set-cookie']);
