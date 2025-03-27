@@ -14,7 +14,6 @@ export class CreateIncomingShipmentDto {
 }
 
 export class IncomingProductDto {
-    @IsOptional()
     @IsUUID()
     productId: string;
 
