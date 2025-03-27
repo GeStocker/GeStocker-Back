@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { FilesModule } from './modules/files/files.module';
 import { InventoryProductsModule } from './modules/inventory-products/inventory-products.module';
 import { IncomingShipmentModule } from './modules/incoming-shipment/incoming-shipment.module';
+import { CollaboratorsModule } from './modules/collaborators/collaborators.module';
 
 
 @Module({
@@ -30,7 +31,8 @@ import { IncomingShipmentModule } from './modules/incoming-shipment/incoming-shi
     BussinesModule,
     InventoryProductsModule,
     FilesModule,
-    IncomingShipmentModule
+    IncomingShipmentModule,
+    CollaboratorsModule
   ], 
   controllers: [],
   providers: [],

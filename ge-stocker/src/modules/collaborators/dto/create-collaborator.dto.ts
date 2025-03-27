@@ -1,6 +1,12 @@
 import { IsNotEmpty, IsString } from "class-validator";
 
 export class CreateCollaboratorDto {
+
+
+      @IsString()
+      @IsNotEmpty()
+      email: string;
+
       @IsString()
       @IsNotEmpty()
       username: string;
@@ -9,6 +15,7 @@ export class CreateCollaboratorDto {
       @IsNotEmpty()
       password: string;
       
+      @IsString()
       @IsNotEmpty()
-      isActive: boolean
+      inventoryId: string;
 }
