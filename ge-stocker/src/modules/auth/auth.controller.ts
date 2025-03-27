@@ -27,7 +27,13 @@ async googleAuthRedirect(@Req() req: CustomRequest, @Res({ passthrough: true }) 
   const profile = req.user;
   await this.authService.registerOrUpdateGoogleUser(profile);
   const loginResponse = await this.authService.loginWithGoogle(profile);
-  res.cookie('token', loginResponse.token, { httpOnly: false });
+  res.cookie('token', loginResponse.token, {
+    httpOnly: false,
+    secure: true,
+    sameSite: 'none',
+    domain: 'ge-stocker.vercel.app',
+    maxAge: 3600000
+  });
   console.log('loginResponse', loginResponse);
   return res.redirect('https://ge-stocker.vercel.app/dashboard/perfil');
 }
