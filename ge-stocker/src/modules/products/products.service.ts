@@ -68,7 +68,7 @@ export class ProductsService {
       .addSelect('SUM(inventoryProduct.stock)', 'totalStock')
       .where('product.businessId = :businessId', { businessId })
       .andWhere('product.isActive = true')
-      .groupBy('product.id, category.id')
+      .groupBy('product.id, category.id, inventoryProduct.id')
       .getRawMany();
   }
 
