@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,6 +26,7 @@ async function bootstrap() {
     });
 
   const logger = new LoggerMiddleware();
+  app.use(cookieParser())
   app.useGlobalPipes(new ValidationPipe({whitelist: true}));
   app.use(logger.use);
   await app.listen(process.env.PORT ?? 3000);
