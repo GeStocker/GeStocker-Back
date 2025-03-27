@@ -10,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', 1); 
+  expressApp.set('trust proxy', true); // Confía en el proxy de Render
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Gestocker')
