@@ -39,7 +39,7 @@ export class ProductsController {
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   updateProduct(
-    @Param('id', ParseUUIDPipe) productId: string, 
+    @Param('productId', ParseUUIDPipe) productId: string, 
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFile() file?: Express.Multer.File
   ) {
