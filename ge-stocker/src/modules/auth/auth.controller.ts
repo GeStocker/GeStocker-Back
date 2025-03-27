@@ -39,6 +39,6 @@ export class AuthController {
   
     console.log('Cookies establecidas:', res.getHeaders()['set-cookie']);
   
-    return res.redirect('https://ge-stocker.vercel.app/dashboard/perfil');
+    return res.redirect(`https://ge-stocker.vercel.app/dashboard/perfil?token=${loginResponse.token}`);;
   }
 }
