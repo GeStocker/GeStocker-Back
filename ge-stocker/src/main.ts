@@ -23,13 +23,13 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
+      'https://ge-stocker.vercel.app',
       'http://localhost:3001',
-      'https://ge-stocker.vercel.app'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-    exposedHeaders: ['Set-Cookie'] 
+    exposedHeaders: ['Set-Cookie']
   });
 
   app.use(cookieParser());
