@@ -36,10 +36,12 @@ export class InventoryProductsService {
     };
 
     async getAllInventoryProducts(inventoryId: string) {
-        return await this.inventoryProductRepository.find({
-            where: { inventory: { id: inventoryId } },
-            relations: ['product'],
-        });
+        return await this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .leftJoinAndSelect('inventoryProduct.product', 'product')
+            .leftJoinAndSelect('product.category', 'category')
+            .where('inventoryProduct.inventoryId = :inventoryId', { inventoryId })
+            .getMany();
     };
 
     async updatePrice(inventoryProductId: string, updatePriceDto: UpdatePriceDto) {
