@@ -21,24 +21,14 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleAuth(@Req() req: CustomRequest) { }
 
-  @Get('google/callback')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
-    const profile = req.user;
-    console.log('Perfil de Google:', profile);
-    const loginResponse = await this.authService.loginWithGoogle(profile);
-    console.log('Token generado:', loginResponse.token);
-    res.cookie('token', loginResponse.token, {
-      httpOnly: true,
-      secure: true, // SOLO para HTTPS
-      sameSite: 'none', // Obligatorio para cross-domain
-      domain: '.vercel.app', // Dominio padre
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-    });
-  
-    console.log('Cookies establecidas:', res.getHeaders()['set-cookie']);
-  
-    return res.redirect('https://ge-stocker.vercel.app/dashboard/perfil');
-  }
+@Get('google/callback')
+@UseGuards(GoogleAuthGuard)
+async googleAuthRedirect(@Req() req: CustomRequest, @Res({ passthrough: true }) res ) {
+  const profile = req.user;
+  await this.authService.registerOrUpdateGoogleUser(profile);
+  const loginResponse = await this.authService.loginWithGoogle(profile);
+  res.cookie('token', loginResponse.token, { httpOnly: false });
+  console.log('loginResponse', loginResponse);
+  return res.redirect('https://ge-stocker.vercel.app/dashboard/perfil');
+}
 }
