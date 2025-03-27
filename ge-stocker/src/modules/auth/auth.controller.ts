@@ -29,12 +29,12 @@ export class AuthController {
     const loginResponse = await this.authService.loginWithGoogle(profile);
     console.log('Token generado:', loginResponse.token);
     res.cookie('token', loginResponse.token, {
-      secure: true,          // Obligatorio en HTTPS
-      sameSite: 'none',      // Para cross-domain
-      httpOnly: false,       // Si necesitas leerla desde el front
-      domain: '.onrender.com', // ¡Dominio del BACKEND, no del frontend! 🔥
-      maxAge: 3600000,
+      secure: true,
+      sameSite: 'none',
+      domain: 'gestocker-back.onrender.com',
+      httpOnly: false,
       path: '/',
+      maxAge: 3600000,
     });
   
     console.log('Cookies establecidas:', res.getHeaders()['set-cookie']);
