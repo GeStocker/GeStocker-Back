@@ -6,6 +6,14 @@ import { Column, Entity, In, JoinColumn, ManyToOne, PrimaryGeneratedColumn } fro
 export class Collaborator {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column({
+        type: 'varchar',
+        length: 100,
+        nullable: false,
+      })
+    email: string;
+    
     @Column({
         type: 'varchar',
         length: 50,

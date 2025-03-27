@@ -11,13 +11,15 @@ export class CollaboratorsService {
     private readonly collaboratorRepository: Repository<Collaborator>,
   ) {}
   async create(collaborator: CreateCollaboratorDto) {
-    const { username, password } = collaborator;
+    const { email, username, password } = collaborator;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newCollaborator = await this.collaboratorRepository.save({
+      email,
       username,
-      password: hashedPassword,
+      inventoryId : collaborator.inventoryId,
+      password: hashedPassword
     });
 
     const { password: _, ...collaboratorWithoutPassword } = newCollaborator;
