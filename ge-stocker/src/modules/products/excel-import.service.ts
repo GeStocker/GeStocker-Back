@@ -28,10 +28,7 @@ export class ExcelImportService {
       const productExistance = await this.productsService.findByName(
         productData.name,
       );
-        if (productExistance) {
-          console.log(
-          `El producto ${productData.name} ya existe. Se omitirá la importación.`,
-        );
+      if (productExistance) {
         continue;
       }
       importedCount++;
