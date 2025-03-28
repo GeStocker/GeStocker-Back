@@ -2,7 +2,7 @@ import { Inventory } from "src/modules/inventory/entities/inventory.entity";
 import { OutgoingProduct } from "src/modules/outgoing-product/entities/outgoing-product.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity('sales_order')
 export class SalesOrder {
     @PrimaryGeneratedColumn('uuid')
     id: string;

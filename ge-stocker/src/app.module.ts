@@ -15,6 +15,7 @@ import { CollaboratorsModule } from './modules/collaborators/collaborators.modul
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SalesOrderModule } from './modules/sales-order/sales-order.module';
 import { OutgoingProductModule } from './modules/outgoing-product/outgoing-product.module';
+import { LostProductsModule } from './modules/lost-products/lost-products.module';
 
 
 @Module({
@@ -38,7 +39,8 @@ import { OutgoingProductModule } from './modules/outgoing-product/outgoing-produ
     CollaboratorsModule,
     PaymentsModule,
     SalesOrderModule,
-    OutgoingProductModule
+    OutgoingProductModule,
+    LostProductsModule
   ], 
   controllers: [],
   providers: [],

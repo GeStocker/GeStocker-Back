@@ -7,6 +7,7 @@ import { IncomingProduct } from 'src/modules/incoming-shipment/entities/incoming
 import { IncomingShipment } from 'src/modules/incoming-shipment/entities/incoming-shipment.entity';
 import { InventoryProduct } from 'src/modules/inventory-products/entities/inventory-products.entity';
 import { Inventory } from 'src/modules/inventory/entities/inventory.entity';
+import { LostProducts } from 'src/modules/lost-products/entities/lost-product.entity';
 import { OutgoingProduct } from 'src/modules/outgoing-product/entities/outgoing-product.entity';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
 import { Product } from 'src/modules/products/entities/product.entity';
@@ -22,7 +23,7 @@ export const TypeOrmConfig = TypeOrmModule.forRootAsync({
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User, Business, Inventory, Product, CategoriesProduct, InventoryProduct, IncomingShipment, IncomingProduct, Collaborator, Payment, SalesOrder, OutgoingProduct],
+        entities: [User, Business, Inventory, Product, CategoriesProduct, InventoryProduct, IncomingShipment, IncomingProduct, Collaborator, Payment, SalesOrder, OutgoingProduct, LostProducts],
         synchronize: true,
         logging: false,
         // dropSchema: true,
