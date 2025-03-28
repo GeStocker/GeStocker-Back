@@ -1,7 +1,7 @@
 import { Business } from "src/modules/bussines/entities/bussines.entity";
 import { CategoriesProduct } from "src/modules/categories-product/entities/categories-product.entity";
 import { InventoryProduct } from "src/modules/inventory-products/entities/inventory-products.entity";
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, ManyToOne, In, JoinColumn, OneToMany } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 
 @Entity({
     name: 'products'
