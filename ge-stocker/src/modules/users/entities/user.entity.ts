@@ -3,12 +3,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  ManyToOne,
   JoinColumn,
   OneToMany,
 } from 'typeorm';
 import { Business } from 'src/modules/bussines/entities/bussines.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
+import { Payment } from 'src/modules/payments/entities/payment.entity';
 
 @Entity({
   name: 'users',
@@ -85,5 +85,8 @@ export class User {
   @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'buisiness_id' })
   businesses: Business[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 
 }

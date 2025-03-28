@@ -12,6 +12,9 @@ import { FilesModule } from './modules/files/files.module';
 import { InventoryProductsModule } from './modules/inventory-products/inventory-products.module';
 import { IncomingShipmentModule } from './modules/incoming-shipment/incoming-shipment.module';
 import { CollaboratorsModule } from './modules/collaborators/collaborators.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { SalesOrderModule } from './modules/sales-order/sales-order.module';
+import { OutgoingProductModule } from './modules/outgoing-product/outgoing-product.module';
 
 
 @Module({
@@ -32,7 +35,10 @@ import { CollaboratorsModule } from './modules/collaborators/collaborators.modul
     InventoryProductsModule,
     FilesModule,
     IncomingShipmentModule,
-    CollaboratorsModule
+    CollaboratorsModule,
+    PaymentsModule,
+    SalesOrderModule,
+    OutgoingProductModule
   ], 
   controllers: [],
   providers: [],

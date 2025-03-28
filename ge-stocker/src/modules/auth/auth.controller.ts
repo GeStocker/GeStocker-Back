@@ -21,14 +21,11 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleAuth(@Req() req: CustomRequest) { }
 
-@Get('google/callback')
-@UseGuards(GoogleAuthGuard)
-async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
-  const profile = req.user;
-  await this.authService.registerOrUpdateGoogleUser(profile);
-  const loginResponse = await this.authService.loginWithGoogle(profile);
-  res.cookie('token', loginResponse.token, { httpOnly: false });
-  console.log('loginResponse', loginResponse);
-  return res.redirect('https://ge-stocker.vercel.app/dashboard/perfil');
-}
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
+    const profile = req.user;
+    const loginResponse = await this.authService.loginWithGoogle(profile);
+    return res.redirect(`https://ge-stocker.vercel.app/dashboard/perfil?token=${loginResponse.token}`);;
+  }
 }
