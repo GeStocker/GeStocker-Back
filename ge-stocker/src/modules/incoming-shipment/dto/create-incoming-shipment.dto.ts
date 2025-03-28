@@ -24,4 +24,8 @@ export class IncomingProductDto {
     @IsNumber()
     @Min(0)
     purchasePrice: number;
+
+    @IsNumber()
+    @Min(0)
+    sellingPrice: number;
 }
