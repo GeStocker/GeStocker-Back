@@ -13,7 +13,6 @@ export class ExcelImportController {
     @Body('userId') userId: string, 
     @Body('businessId') businessId: string
   ) {
-    console.log('Archivo recibido:', file);  // Verifica que el archivo está siendo recibido aquí
     return this.excelImportService.importProducts(file.buffer, userId, businessId);
   }
 }
