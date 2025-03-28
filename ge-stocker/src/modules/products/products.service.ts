@@ -3,7 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Not, Repository } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { Business } from '../bussines/entities/bussines.entity';
 import { CategoriesProduct } from '../categories-product/entities/categories-product.entity';
 import { FilesService } from '../files/files.service';
@@ -91,7 +91,7 @@ export class ProductsService {
 
     if (updateProductDto.category) {
       let category = await this.categoriesProductRepository.findOne({
-        where: { name: updateProductDto.category, business: product.business },
+        where: { name: ILike(updateProductDto.category), business: { id: product.business.id } },
       });
 
       if (!category) {
