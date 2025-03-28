@@ -59,14 +59,14 @@ export class IncomingShipmentService {
                     product,
                     inventory,
                     stock: prod.quantity,
-                    price: 0,
+                    price: prod.sellingPrice,
                 });
-
-                await this.inventoryProductRepository.save(inventoryProduct);
             } else {
                 inventoryProduct.stock += prod.quantity;
-                await this.inventoryProductRepository.save(inventoryProduct);
+                inventoryProduct.price = prod.sellingPrice;
             };
+
+            await this.inventoryProductRepository.save(inventoryProduct);
 
             const incomingProduct = this.incomingProductRepository.create({
                 name: product.name,
