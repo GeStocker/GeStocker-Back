@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,47 +21,57 @@ export class ProductsService {
     private readonly businessRepository: Repository<Business>,
     @InjectRepository(CategoriesProduct)
     private readonly categoriesProductRepository: Repository<CategoriesProduct>,
-    private readonly cloudinaryService: FilesService
+    private readonly cloudinaryService: FilesService,
   ) {}
-  async createProduct(createProductDto: CreateProductDto, userId: string, businessId: string, file?: Express.Multer.File) {
+  async createProduct(
+    createProductDto: CreateProductDto,
+    userId: string,
+    businessId: string,
+    file?: Express.Multer.File,
+  ) {
     const { name, description, category } = createProductDto;
 
     const business = await this.businessRepository.findOne({
-      where: {id: businessId, user: {id: userId } },
+      where: { id: businessId, user: { id: userId } },
     });
 
     if (!business) throw new NotFoundException('Business not found!');
 
     const productExistance = await this.productRepository.findOne({
-      where: { name }
+      where: { name },
     });
 
-    if (productExistance) throw new ConflictException('Product already exists!');
+    if (productExistance)
+      throw new ConflictException('Product already exists!');
 
     let categoryEntity = await this.categoriesProductRepository.findOne({
       where: { name: category, business: { id: businessId } },
     });
 
     if (!categoryEntity) {
-      categoryEntity = this.categoriesProductRepository.create({ name: category, business });
+      categoryEntity = this.categoriesProductRepository.create({
+        name: category,
+        business,
+      });
       await this.categoriesProductRepository.save(categoryEntity);
     }
 
     let imgUrl: string | undefined;
-    if(file) {
-      const uploadResult = await this.cloudinaryService.uploadProductImage(file);
+    if (file) {
+      const uploadResult =
+        await this.cloudinaryService.uploadProductImage(file);
       imgUrl = uploadResult.secure_url;
-    };
+    }
 
     const newProduct = this.productRepository.create({
       name,
       description,
       img: imgUrl,
       business,
-      category: categoryEntity
+      category: categoryEntity,
     });
 
-    return await this.productRepository.save(newProduct)
+    return await this.productRepository.save(newProduct);
   }
 
   async getAllProductsByBusiness(businessId: string) {
@@ -72,11 +86,19 @@ export class ProductsService {
       .getRawMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  findOne(id: string) {
+    return this.productRepository.findOne({ where: { id } });
   }
 
-  async updateProduct(productId: string, updateProductDto: UpdateProductDto, file?: Express.Multer.File) {
+  findByName(name: string) {
+    return this.productRepository.findOne({ where: { name } });
+  }
+
+  async updateProduct(
+    productId: string,
+    updateProductDto: UpdateProductDto,
+    file?: Express.Multer.File,
+  ) {
     const product = await this.productRepository.findOne({
       where: { id: productId },
       relations: ['business', 'category'],
@@ -85,9 +107,12 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found');
 
     if (file) {
-      const uploadResult = await this.cloudinaryService.updateProductImage(file, productId)
+      const uploadResult = await this.cloudinaryService.updateProductImage(
+        file,
+        productId,
+      );
       updateProductDto['img'] = uploadResult.secure_url;
-    };
+    }
 
     if (updateProductDto.category) {
       let category = await this.categoriesProductRepository.findOne({
@@ -123,6 +148,6 @@ export class ProductsService {
 
     await this.productRepository.save(product);
 
-    return "Product deleted successfully";
+    return 'Product deleted successfully';
   }
 }

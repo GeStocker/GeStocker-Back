@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, UploadedFile, ParseUUIDPipe, Put, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  UploadedFile,
+  ParseUUIDPipe,
+  Put,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -20,30 +33,41 @@ export class ProductsController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const userId = request.user.id;
-    return this.productsService.createProduct(createProductDto, userId, businessId, file);
+    return this.productsService.createProduct(
+      createProductDto,
+      userId,
+      businessId,
+      file,
+    );
   }
 
   @Get('business/:businessId')
   @UseGuards(AuthGuard)
-  getAllProductsByBusiness(@Param('businessId', ParseUUIDPipe) businessId: string) {
+  getAllProductsByBusiness(
+    @Param('businessId', ParseUUIDPipe) businessId: string,
+  ) {
     return this.productsService.getAllProductsByBusiness(businessId);
   }
 
   @Get(':id')
   @UseGuards(AuthGuard)
   findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+    return this.productsService.findOne(id);
   }
 
   @Put(':productId')
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   updateProduct(
-    @Param('productId', ParseUUIDPipe) productId: string, 
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Body() updateProductDto: UpdateProductDto,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.productsService.updateProduct(productId, updateProductDto, file);
+    return this.productsService.updateProduct(
+      productId,
+      updateProductDto,
+      file,
+    );
   }
 
   @Put('deactivate/:productId')
