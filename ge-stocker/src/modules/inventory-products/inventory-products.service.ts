@@ -16,25 +16,6 @@ export class InventoryProductsService {
         private readonly inventoryRepository: Repository<Inventory>,
     ) {}
 
-    async addProductsToInventory(inventoryId: string, products: InventoryProductDataDto[]) {
-        const inventory = await this.inventoryRepository.findOne({
-            where: { id: inventoryId },
-        });
-
-        if (!inventory) throw new NotFoundException('Inventory not found');
-
-        const newInventoryProducts = products.map((product) => {
-            return this.inventoryProductRepository.create({
-                inventory,
-                product: { id: product.productId },
-                price: product.price,
-                stock: product.stock,
-            });
-        });
-
-        return await this.inventoryProductRepository.save(newInventoryProducts);
-    };
-
     async getAllInventoryProducts(inventoryId: string) {
         return await this.inventoryProductRepository
             .createQueryBuilder('inventoryProduct')
