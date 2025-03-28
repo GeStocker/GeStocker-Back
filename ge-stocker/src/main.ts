@@ -10,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', true); // Confía en el proxy de Render
+  expressApp.set('trust proxy', true);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Gestocker')
@@ -28,11 +28,8 @@ async function bootstrap() {
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    exposedHeaders: ['Set-Cookie']
+    credentials: true
   });
-
-  app.use(cookieParser());
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use((new LoggerMiddleware()).use);

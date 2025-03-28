@@ -25,20 +25,7 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
     const profile = req.user;
-    console.log('Perfil de Google:', profile);
     const loginResponse = await this.authService.loginWithGoogle(profile);
-    console.log('Token generado:', loginResponse.token);
-    res.cookie('token', loginResponse.token, {
-      secure: true,
-      sameSite: 'none',
-      domain: 'gestocker-back.onrender.com',
-      httpOnly: false,
-      path: '/',
-      maxAge: 3600000,
-    });
-  
-    console.log('Cookies establecidas:', res.getHeaders()['set-cookie']);
-  
     return res.redirect(`https://ge-stocker.vercel.app/dashboard/perfil?token=${loginResponse.token}`);;
   }
 }
