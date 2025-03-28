@@ -8,10 +8,12 @@ import { FilesService } from '../files/files.service';
 import { Product } from './entities/product.entity';
 import { CloudinaryRepository } from '../files/files.repository';
 import { User } from '../users/entities/user.entity';
+import { ExcelImportController } from './excel-import.controller';
+import { ExcelImportService } from './excel-import.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Product,Business, CategoriesProduct, User])],
-  controllers: [ProductsController],
-  providers: [ProductsService, FilesService, CloudinaryRepository],
+  controllers: [ProductsController, ExcelImportController],
+  providers: [ProductsService, FilesService, CloudinaryRepository, ExcelImportService],
 })
 export class ProductsModule {}
