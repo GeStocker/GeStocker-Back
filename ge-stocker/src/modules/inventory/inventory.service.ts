@@ -36,6 +36,14 @@ export class InventoryService {
     return inventories;
   }
 
+  async getBusinessInventories(businessId: string) {
+    const inventories = await this.inventoryRepository.findOne({
+      where: { business: { id: businessId } },
+    });
+
+    return inventories;
+  }
+
   async getInventoryById(id: string): Promise<Inventory> {
     const inventory = await this.inventoryRepository.findOne({where: {id}, relations: ['business']});
     if (!inventory) throw new NotFoundException(`Inventory not found`);
