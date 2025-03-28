@@ -20,7 +20,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRETS,
-      signOptions: {expiresIn: "1h"}
+      signOptions: {expiresIn: "12h"}
     }),
     TypeOrmConfig,
     EnvConfig,

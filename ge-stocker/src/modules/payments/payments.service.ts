@@ -66,6 +66,6 @@ export class PaymentsService {
         await this.paymentsRepository.save(payment);
     }
 
-        return { received:true};
+        return {received:true};
     }
 }
