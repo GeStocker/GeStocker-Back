@@ -1,4 +1,4 @@
-import { IsNumber, IsUUID } from "class-validator";
+import { IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateOutgoingProductDto {
     @IsUUID()
@@ -6,4 +6,8 @@ export class CreateOutgoingProductDto {
 
     @IsNumber()
     quantity: number;
+
+    @IsOptional()
+    @IsString()
+    reason?: string;
 }
