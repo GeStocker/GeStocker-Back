@@ -16,10 +16,13 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { SalesOrderModule } from './modules/sales-order/sales-order.module';
 import { OutgoingProductModule } from './modules/outgoing-product/outgoing-product.module';
 import { LostProductsModule } from './modules/lost-products/lost-products.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 
 @Module({
   imports: [
+    MulterModule.register({
+      dest: './uploads'}),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRETS,
