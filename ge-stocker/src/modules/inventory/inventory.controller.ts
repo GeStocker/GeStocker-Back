@@ -28,6 +28,12 @@ export class InventoryController {
     return this.inventoryService.getInventories();
   }
 
+  @Get(':businessId')
+  @UseGuards(AuthGuard)
+  getBusinessInventories(@Param('businessId') businessId: string){
+    return this.inventoryService.getBusinessInventories(businessId);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   getInventoryById(@Param('id') id: string): Promise<Inventory> {
