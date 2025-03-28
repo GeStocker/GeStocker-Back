@@ -73,8 +73,12 @@ export class ProductsService {
       .getRawMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  findOne(id: string) {
+    return this.productRepository.findOne({ where: { id } });
+  }
+
+  findByName(name: string) {
+    return this.productRepository.findOne({ where: { name } });
   }
 
   async updateProduct(productId: string, updateProductDto: UpdateProductDto, file?: Express.Multer.File) {
