@@ -15,9 +15,7 @@ export class InventoryService {
     private readonly businessRepository: Repository<Business>,
   ) {}
 
-  async createInventory(createInventoryDto: CreateInventoryDto): Promise<Inventory> {
-    const { businessId } = createInventoryDto;
-
+  async createInventory(createInventoryDto: CreateInventoryDto, businessId: string): Promise<Inventory> {
     const business = await this.businessRepository.findOne({
       where: { id: businessId },
     });

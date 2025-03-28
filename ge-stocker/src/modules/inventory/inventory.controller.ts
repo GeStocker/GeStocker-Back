@@ -12,10 +12,13 @@ import { RolesGuard } from '../auth/roles.guard';
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
-  @Post()
-    @UseGuards(AuthGuard)
-  createInventory(@Body() createInventoryDto: CreateInventoryDto): Promise<Inventory> {
-    return this.inventoryService.createInventory(createInventoryDto);
+  @Post(':businessId')
+  @UseGuards(AuthGuard)
+  createInventory(
+    @Body() createInventoryDto: CreateInventoryDto,
+    @Param('businessId') businessId: string,
+  ): Promise<Inventory> {
+    return this.inventoryService.createInventory(createInventoryDto, businessId);
   }
 
   @Get()

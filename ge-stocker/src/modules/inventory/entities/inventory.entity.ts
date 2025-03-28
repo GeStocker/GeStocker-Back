@@ -2,6 +2,7 @@ import { Business } from 'src/modules/bussines/entities/bussines.entity';
 import { Collaborator } from 'src/modules/collaborators/entities/collaborator.entity';
 import { IncomingShipment } from 'src/modules/incoming-shipment/entities/incoming-shipment.entity';
 import { InventoryProduct } from 'src/modules/inventory-products/entities/inventory-products.entity';
+import { LostProducts } from 'src/modules/lost-products/entities/lost-product.entity';
 import { SalesOrder } from 'src/modules/sales-order/entities/sales-order.entity';
 import {
   JoinColumn,
@@ -61,4 +62,7 @@ export class Inventory {
 
   @OneToMany(() => SalesOrder, (salesOrder) => salesOrder.inventory)
   salesOrders: SalesOrder[];
+
+  @OneToMany(() => LostProducts, (lostProduct) => lostProduct.inventory)
+  lostProducts: LostProducts[];
 }
