@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { IncomingShipment } from "./incoming-shipment.entity";
 import { Product } from "src/modules/products/entities/product.entity";
+import { InventoryProduct } from "src/modules/inventory-products/entities/inventory-products.entity";
 
 @Entity({ name: 'incoming_products' })
 export class IncomingProduct {
@@ -27,6 +28,6 @@ export class IncomingProduct {
     })
     shipment: IncomingShipment;
 
-    @ManyToOne(() => Product, { nullable: false })
-    product: Product;
+    @ManyToOne(() => InventoryProduct, { nullable: false })
+    inventoryProduct: InventoryProduct;
 }

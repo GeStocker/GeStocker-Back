@@ -59,12 +59,14 @@ export class IncomingShipmentService {
                     product,
                     inventory,
                     stock: prod.quantity,
-                    price: 0,
+                    price: prod.sellingPrice,
                 });
 
                 await this.inventoryProductRepository.save(inventoryProduct);
             } else {
                 inventoryProduct.stock += prod.quantity;
+                inventoryProduct.price = prod.sellingPrice;
+
                 await this.inventoryProductRepository.save(inventoryProduct);
             };
 
@@ -72,7 +74,7 @@ export class IncomingShipmentService {
                 name: product.name,
                 description: product.description,
                 shipment: incomingShipment,
-                product,
+                inventoryProduct,
                 quantity: prod.quantity,
                 purchasePrice: prod.purchasePrice,
                 totalPrice: prod.quantity * prod.purchasePrice,

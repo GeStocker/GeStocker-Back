@@ -14,7 +14,6 @@ export class CreateIncomingShipmentDto {
 }
 
 export class IncomingProductDto {
-    @IsOptional()
     @IsUUID()
     productId: string;
 
@@ -25,4 +24,8 @@ export class IncomingProductDto {
     @IsNumber()
     @Min(0)
     purchasePrice: number;
+
+    @IsNumber()
+    @Min(0)
+    sellingPrice: number;
 }

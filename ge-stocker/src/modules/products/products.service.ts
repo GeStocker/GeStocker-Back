@@ -62,9 +62,15 @@ export class ProductsService {
   }
 
   async getAllProductsByBusiness(businessId: string) {
-    return await this.productRepository.find({
-      where: { business: { id: businessId }, isActive: true },
-    });
+    return await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.inventoryProducts', 'inventoryProduct')
+      .addSelect('SUM(inventoryProduct.stock)', 'totalStock')
+      .where('product.businessId = :businessId', { businessId })
+      .andWhere('product.isActive = true')
+      .groupBy('product.id, category.id, inventoryProduct.id')
+      .getRawMany();
   }
 
   findOne(id: number) {
@@ -101,7 +107,8 @@ export class ProductsService {
       product.category = category;
     }
 
-    Object.assign(product, updateProductDto);
+    const { category, ...productData } = updateProductDto;
+    Object.assign(product, productData);
 
     return await this.productRepository.save(product);
   }
