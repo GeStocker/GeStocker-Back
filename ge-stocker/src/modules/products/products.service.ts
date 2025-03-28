@@ -19,7 +19,8 @@ export class ProductsService {
     private readonly categoriesProductRepository: Repository<CategoriesProduct>,
     private readonly cloudinaryService: FilesService
   ) {}
-  async createProduct(createProductDto: CreateProductDto, userId: string, businessId: string, file?: Express.Multer.File) {
+  async createProduct(createProductDto: CreateProductDto, userId: string, businessId: string, file?: Express.Multer.File)
+ {
     const { name, description, category } = createProductDto;
 
     const business = await this.businessRepository.findOne({
