@@ -57,8 +57,6 @@ export class AuthController {
     try {
       const profile = req.user;
       const loginResponse = await this.authService.handleGoogleUser(profile);
-      
-      // Redirige según el estado de suscripción
       if (loginResponse.requiresSubscription) {
         return res.redirect(`https://ge-stocker.vercel.app/select-plan?token=${loginResponse.tempToken}`);
       } else {
