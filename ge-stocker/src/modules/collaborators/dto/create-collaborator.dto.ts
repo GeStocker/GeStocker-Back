@@ -1,9 +1,8 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, IsUUID } from "class-validator";
 
 export class CreateCollaboratorDto {
 
-
-      @IsString()
+      @IsEmail()
       @IsNotEmpty()
       email: string;
 
@@ -15,7 +14,16 @@ export class CreateCollaboratorDto {
       @IsNotEmpty()
       password: string;
       
-      @IsString()
+      @IsUUID()
       @IsNotEmpty()
       inventoryId: string;
+};
+
+export class LoginCollaboratorDto {
+      @IsString()
+      @IsNotEmpty()
+      username: string;
+
+      @IsNotEmpty()
+      password: string;
 }
