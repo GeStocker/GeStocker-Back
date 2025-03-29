@@ -86,24 +86,6 @@ export class AuthService {
       token,
     };
   }
-  async registerOrUpdateGoogleUser(profile: any): Promise<Partial<User>> {
-    const { email, firstName, lastName, picture } = profile;
-
-    let user = await this.userRepository.findOne({
-      where: { email },
-    });
-
-    if (!user) {
-      user = await this.userRepository.save({
-        name: `${firstName} ${lastName}`,
-        email,
-        img: picture
-      });
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
 
   async loginWithGoogle(profile: any): Promise<{ success: string; token: string }> {
     const { email, firstName, lastName, picture } = profile;
@@ -131,7 +113,7 @@ export class AuthService {
     };
 
 
-    const token = this.JwtService.sign(userPayload, { expiresIn: '1h' });
+    const token = this.JwtService.sign(userPayload, { expiresIn: '12h' });
 
     return {
       success: 'Inicio de sesion exitoso, firma creada por 1 hora',
