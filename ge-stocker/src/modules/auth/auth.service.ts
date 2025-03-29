@@ -79,10 +79,10 @@ export class AuthService {
     };
 
 
-    const token = this.JwtService.sign(userPayload, { expiresIn: '1h' });
+    const token = this.JwtService.sign(userPayload, { expiresIn: '12h' });
 
     return {
-      success: 'Inicio de sesion exitoso, firma creada por 1 hora',
+      success: 'Inicio de sesion exitoso, firma creada por 12 horas',
       token,
     };
   }

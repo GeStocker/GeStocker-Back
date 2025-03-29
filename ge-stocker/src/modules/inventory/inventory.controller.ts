@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
@@ -7,6 +7,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from '../../interfaces/roles.enum';
 import { RolesGuard } from '../auth/roles.guard';
+import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Controller('inventory')
 export class InventoryController {
@@ -36,8 +37,11 @@ export class InventoryController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  getInventoryById(@Param('id') id: string): Promise<Inventory> {
-    return this.inventoryService.getInventoryById(id);
+  getInventoryById(
+    @Param('id') id: string,
+    @Req() request: CustomRequest,
+  ): Promise<Inventory> {
+    return this.inventoryService.getInventoryById(id, request);
   }
 
   @Patch(':id')
