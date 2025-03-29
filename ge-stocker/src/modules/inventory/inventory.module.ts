@@ -6,9 +6,11 @@ import { Inventory } from './entities/inventory.entity';
 import { Business } from '../bussines/entities/bussines.entity';
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
 import { SalesOrder } from '../sales-order/entities/sales-order.entity';
+import { User } from '../users/entities/user.entity';
+import { Collaborator } from '../collaborators/entities/collaborator.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Inventory, Business, IncomingShipment, SalesOrder])],
+  imports: [TypeOrmModule.forFeature([Inventory, Business, IncomingShipment, SalesOrder, User, Collaborator])],
   controllers: [InventoryController],
   providers: [InventoryService],
 })
