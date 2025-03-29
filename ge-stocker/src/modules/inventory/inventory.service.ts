@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Repository } from 'typeorm';
 import { Business } from '../bussines/entities/bussines.entity';
+import { User } from '../users/entities/user.entity';
+import { Collaborator } from '../collaborators/entities/collaborator.entity';
+import { CustomRequest } from 'src/interfaces/custom-request.interface';
 
 @Injectable()
 export class InventoryService {
@@ -13,6 +16,10 @@ export class InventoryService {
     private readonly inventoryRepository: Repository<Inventory>,
     @InjectRepository(Business)
     private readonly businessRepository: Repository<Business>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Collaborator)
+    private readonly collaboratorRepository: Repository<Collaborator>,
   ) {}
 
   async createInventory(createInventoryDto: CreateInventoryDto, businessId: string): Promise<Inventory> {
@@ -44,10 +51,29 @@ export class InventoryService {
     return inventories;
   }
 
-  async getInventoryById(id: string): Promise<Inventory> {
-    const inventory = await this.inventoryRepository.findOne({where: {id}, relations: ['business']});
-    if (!inventory) throw new NotFoundException(`Inventory not found`);
-    return inventory;
+  async getInventoryById(id: string, request: CustomRequest): Promise<Inventory> {
+    const { user } = request;
+
+    const owner = await this.userRepository.findOne({
+      where: { id: user.id },
+    });
+
+    if (owner) {
+      const inventory = await this.inventoryRepository.findOne({
+        where: { id, business: { user: { id: owner.id } } },
+        relations: ['business'],
+      });
+      if (inventory) return inventory;
+    };
+    
+    const collaborator = await this.collaboratorRepository.findOne({
+      where: { id: user.id, inventory: { id } },
+      relations: ['inventory'],
+    });
+    
+    if (collaborator) return collaborator.inventory; 
+
+    throw new ForbiddenException('No tienes acceso a este inventario');
   }
 
   async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
@@ -70,7 +96,9 @@ export class InventoryService {
   }
 
   async removeInventory(id: string): Promise<Inventory> {
-    const inventory = await this.getInventoryById(id);
+    const inventory = await this.inventoryRepository.findOne({
+      where: { id },
+    });
     if (!inventory) throw new NotFoundException(`Inventory not found`);
   
     inventory.isActive = false;

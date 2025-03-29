@@ -1,52 +1,81 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { CreateCollaboratorDto, LoginCollaboratorDto } from './dto/create-collaborator.dto';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Collaborator } from './entities/collaborator.entity';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { Inventory } from '../inventory/entities/inventory.entity';
+import { UserRole } from 'src/interfaces/roles.enum';
 @Injectable()
 export class CollaboratorsService {
   constructor(
     @InjectRepository(Collaborator)
     private readonly collaboratorRepository: Repository<Collaborator>,
+    @InjectRepository(Inventory)
+    private readonly inventoryRepository: Repository<Inventory>,
+    private readonly JwtService: JwtService,
   ) {}
   async create(collaborator: CreateCollaboratorDto) {
-    const { email, username, password } = collaborator;
+    const { email, username, password, inventoryId } = collaborator;
+
+    const existingCollaborator = await this.collaboratorRepository.findOne({
+      where: [{ email }, { username }],
+    });
+
+    if (existingCollaborator) throw new ConflictException('El email o username ya estan en uso');
+
+    const inventory = await this.inventoryRepository.findOne({
+      where: { id: inventoryId },
+    });
+
+    if (!inventory) throw new NotFoundException('Inventario no encontrado');
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newCollaborator = await this.collaboratorRepository.save({
       email,
       username,
-      inventoryId : collaborator.inventoryId,
-      password: hashedPassword
+      password: hashedPassword,
+      inventory
     });
 
     const { password: _, ...collaboratorWithoutPassword } = newCollaborator;
     return collaboratorWithoutPassword;
   }
 
-  async loginCollaborator(credentials: CreateCollaboratorDto) {
+  async loginCollaborator(credentials: LoginCollaboratorDto) {
     const { username, password } = credentials;
     const collaborator = await this.collaboratorRepository.findOne({
       where: { username },
+      relations: ['inventory'],
     });
+
     if (!collaborator) {
       throw new UnauthorizedException('Usuario no encontrado');
-    }
+    };
+
     const isPasswordValid = await bcrypt.compare(
       password,
       collaborator.password,
     );
+
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Contraseña incorrecta');
-    }
+      throw new UnauthorizedException('Credenciales incorrectas');
+    };
+
     const collaboratorPayload = {
       username: collaborator.username,
       sub: collaborator.id,
+      inventoryId: collaborator.inventory.id,
     };
 
-    return collaboratorPayload;
+    const token = this.JwtService.sign(collaboratorPayload, { expiresIn: '12h' });
+
+    return {
+      success: 'Inicio de sesion exitoso, firma creada por 12 horas',
+      token,
+    };
   }
 
   async findAll() {
