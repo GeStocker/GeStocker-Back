@@ -11,6 +11,7 @@ import {
   ParseUUIDPipe,
   Put,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -18,6 +19,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { CustomRequest } from 'src/interfaces/custom-request.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetBusinessProductsFilterDto } from './dto/product-filters.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -45,8 +47,9 @@ export class ProductsController {
   @UseGuards(AuthGuard)
   getAllProductsByBusiness(
     @Param('businessId', ParseUUIDPipe) businessId: string,
+    @Query() businessProductFilterDto: GetBusinessProductsFilterDto,
   ) {
-    return this.productsService.getAllProductsByBusiness(businessId);
+    return this.productsService.getAllProductsByBusiness(businessId, businessProductFilterDto);
   }
 
   @Get(':id')
