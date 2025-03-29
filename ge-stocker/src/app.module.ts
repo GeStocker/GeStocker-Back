@@ -26,7 +26,7 @@ import { MulterModule } from '@nestjs/platform-express';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRETS,
-      signOptions: {expiresIn: "1h"}
+      signOptions: {expiresIn: "12h"}
     }),
     TypeOrmConfig,
     EnvConfig,
