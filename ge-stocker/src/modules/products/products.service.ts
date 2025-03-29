@@ -11,6 +11,7 @@ import { ILike, Not, Repository } from 'typeorm';
 import { Business } from '../bussines/entities/bussines.entity';
 import { CategoriesProduct } from '../categories-product/entities/categories-product.entity';
 import { FilesService } from '../files/files.service';
+import { GetBusinessProductsFilterDto } from './dto/product-filters.dto';
 
 @Injectable()
 export class ProductsService {
@@ -74,16 +75,27 @@ export class ProductsService {
     return await this.productRepository.save(newProduct);
   }
 
-  async getAllProductsByBusiness(businessId: string) {
-    return await this.productRepository
+  async getAllProductsByBusiness(businessId: string, businessProductFilterDto: GetBusinessProductsFilterDto) {
+    const { search, categoryIds } = businessProductFilterDto;
+    
+    const query = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
       .leftJoinAndSelect('product.inventoryProducts', 'inventoryProduct')
       .addSelect('SUM(inventoryProduct.stock)', 'totalStock')
       .where('product.businessId = :businessId', { businessId })
       .andWhere('product.isActive = true')
-      .groupBy('product.id, category.id, inventoryProduct.id')
-      .getRawMany();
+      .groupBy('product.id, category.id, inventoryProduct.id');
+    
+    if (search) {
+      query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}`});
+    };
+
+    if (categoryIds && categoryIds.length > 0){
+      query.andWhere('category.id IN (:...categoryIds)', { categoryIds });
+    };
+
+    return query.getRawMany();
   }
 
   findOne(id: string) {
