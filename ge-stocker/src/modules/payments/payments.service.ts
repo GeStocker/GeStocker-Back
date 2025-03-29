@@ -1,75 +1,111 @@
+// src/modules/payments/payments.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
-import { Payment } from './entities/payment.entity';
-import { Not, Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
+import { EntityManager, Repository } from 'typeorm';
 import Stripe from 'stripe';
+import { ConfigService } from '@nestjs/config';
+import { Payment } from './entities/payment.entity';
+import { User } from '../users/entities/user.entity';
+import { PaymentSession } from './entities/payment-session-entity';
+import { SubscriptionPlan } from '../../interfaces/subscriptions.enum';
 
 @Injectable()
 export class PaymentsService {
     private stripe: Stripe;
 
     constructor(
-        @InjectRepository(User)
-        private usersRepository: Repository<User>,
-        @InjectRepository(Payment)
-        private paymentsRepository: Repository<Payment>,
         private configService: ConfigService,
+        @InjectRepository(Payment)
+        private paymentRepository: Repository<Payment>,
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
     ) {
-
-    const stripeSecretKey = this.configService.get('STRIPE_SECRET_KEY');
-
-    if (!stripeSecretKey){
-        throw new Error ('STRIPE_SECRET_KEY no esta definida')
-    }
-
-    this.stripe = new Stripe((stripeSecretKey), {apiVersion: '2025-02-24.acacia'});
-    }
-
-    async createCheckoutSession(priceId: string, userId: string) {
-        const user = await this.usersRepository.findOneBy({ id: userId });
-
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
+        const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+        if (!stripeSecretKey) {
+            throw new NotFoundException('Stripe secret key not found');
         }
-        
+        this.stripe = new Stripe(stripeSecretKey, {
+            apiVersion: '2025-02-24.acacia'
+        })
+    }
+
+    getPriceIdForPlan(plan: SubscriptionPlan): string {
+        const prices = {
+            [SubscriptionPlan.BASIC]: this.configService.get('STRIPE_BASIC_PRICE_ID'),
+            [SubscriptionPlan.PROFESIONAL]: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
+            [SubscriptionPlan.BUSINESS]: this.configService.get('STRIPE_BUSINESS_PRICE_ID'),
+        };
+        return prices[plan];
+    }
+
+    async createCheckoutSession(
+        priceId: string,
+        plan: SubscriptionPlan,
+        userId: string,
+        manager: EntityManager,
+    ): Promise<{ url: string }> {
         const session = await this.stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [{
-            price: priceId,
-            quantity: 1,
-        }],
+            payment_method_types: ['card'],
+            line_items: [{ price: priceId, quantity: 1 }],
             mode: 'subscription',
-            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}?session_id={{CHECKOUT_SESSION_ID}}`,
-            cancel_url: this.configService.get('FRONTEND_CANCEL_URL'), // falta definir la ruta de cancelación de supscripción
+            metadata: { userId, plan },
+            success_url: `${this.configService.get('FRONTEND_URL')}/payment-success`,
+            cancel_url: `${this.configService.get('FRONTEND_URL')}/payment-cancel`,
         });
 
+        await manager.save(PaymentSession, {
+            sessionId: session.id,
+            user: { id: userId },
+            status: 'PENDING',
+        });
+
+        if (!session.url) {
+            throw new NotFoundException('Session URL is null');
+        }
         return { url: session.url };
     }
 
-    async handleWebhook(payload: any, sig: string) {
-        const stripeSecretKey = this.configService.get('STRIPE_WEBHOOK_SECRET');
-        const event = this.stripe.webhooks.constructEvent(
-            payload,
-            sig,
-            stripeSecretKey
-        );
+    async handleStripeWebhook(payload: any, sig: string) {
+        const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET');
+        const event = this.stripe.webhooks.constructEvent(payload, sig, webhookSecret);
 
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object as any;
-    
-        const payment = this.paymentsRepository.create({
-            amount: session.amount_total / 100,
-            currency: session.currency,
-            status: 'succeeded',
-            stripePaymentId: session.id,
-            user: { id: session.metadata.userId }
-        });
-    
-        await this.paymentsRepository.save(payment);
+        if (event.type === 'checkout.session.completed') {
+            await this.handleSuccessfulPayment(event);
+        }
+
+        return { received: true };
     }
 
-        return {received:true};
+    private async handleSuccessfulPayment(event: Stripe.Event) {
+        const session = event.data.object as Stripe.Checkout.Session;
+
+        return this.userRepository.manager.transaction(async (manager) => {
+            // Actualizar usuario
+            await manager.update(
+                User,
+                session.metadata?.userId ?? '',
+                {
+                    roles: session.metadata ? [{ name: session.metadata.plan } as any] : [],
+                    isActive: true,
+                }
+            );
+
+            // Actualizar sesión de pago
+            await manager.update(
+                PaymentSession,
+                { sessionId: session.id },
+                { status: 'COMPLETED' }
+            );
+
+            // Registrar pago
+            await manager.save(Payment, {
+                amount: (session.amount_total ?? 0) / 100,
+                currency: session.currency ?? undefined,
+                status: 'succeeded',
+                stripePaymentId: session.id,
+                plan: session.metadata?.plan as SubscriptionPlan ?? null,
+                user: { id: session.metadata?.userId ?? '' },
+            });
+        });
     }
 }

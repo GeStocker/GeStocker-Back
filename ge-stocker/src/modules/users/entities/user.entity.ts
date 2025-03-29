@@ -9,6 +9,7 @@ import {
 import { Business } from 'src/modules/bussines/entities/bussines.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { Payment } from 'src/modules/payments/entities/payment.entity';
+import { PaymentSession } from '../../payments/entities/payment-session-entity';
 
 @Entity({
   name: 'users',
@@ -69,7 +70,7 @@ export class User {
   @CreateDateColumn()
   createdAt: string;
 
-  @Column({ type: 'simple-array', default: [UserRole.BASIC] })
+  @Column({ type: 'simple-array' })
   roles: UserRole[]
 
   @Column({
@@ -88,5 +89,8 @@ export class User {
 
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
+
+  @OneToMany(() => PaymentSession, (session) => session.user)
+  paymentSessions: PaymentSession[];
 
 }

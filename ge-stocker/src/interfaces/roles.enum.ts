@@ -3,5 +3,6 @@ export enum UserRole {
     PROFESIONAL = 'profesional',
     BUSINESS = 'business',
     ADMIN = 'admin',
-    SUPERADMIN = 'superadmin'
+    SUPERADMIN = 'superadmin',
+    PENDING = "PENDING"
 }
