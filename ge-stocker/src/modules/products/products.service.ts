@@ -88,14 +88,14 @@ export class ProductsService {
       .groupBy('product.id, category.id, inventoryProduct.id');
     
     if (search) {
-      query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}`});
+      query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}%`});
     };
 
     if (categoryIds && categoryIds.length > 0){
       query.andWhere('category.id IN (:...categoryIds)', { categoryIds });
     };
 
-    return query.getRawMany();
+    return await query.getRawMany();
   }
 
   findOne(id: string) {
