@@ -3,21 +3,40 @@ import {
   Post, 
   Body, 
   Req, 
-  Headers 
+  Headers,
+  UseGuards 
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
+import { AuthGuard } from '../auth/auth.guard'; // Corregida la ruta
+import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto'; // Asegúrate de crear este archivo
+import { EntityManager } from 'typeorm';
 
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly entityManager: EntityManager
+  ) {}
 
   @Post('create-checkout-session')
-  createCheckoutSession(@Body() body: { priceId: string, userId: string }) {
-    return this.paymentsService.createCheckoutSession(body.priceId, body.userId);
+  @UseGuards(AuthGuard)
+  async createCheckoutSession(
+    @Body() createCheckoutSessionDto: CreateCheckoutSessionDto,
+    @Req() req // Corregido @Red() por @Req()
+  ) {
+    return this.paymentsService.createCheckoutSession(
+      createCheckoutSessionDto.priceId, // Corregido priceld -> priceId
+      createCheckoutSessionDto.plan,
+      req.user.id,
+      this.entityManager
+    );
   }
 
   @Post('webhook')
-  handleWebhook(@Req() req, @Headers('stripe-signature') sig: string) {
-    return this.paymentsService.handleWebhook(req.rawBody, sig);
+  async handleWebhook(
+    @Body() rawBody: Buffer,
+    @Headers('stripe-signature') signature: string
+  ) {
+    return this.paymentsService.handleStripeWebhook(rawBody, signature);
   }
 }

@@ -1,7 +1,9 @@
 export enum SubscriptionPlan {
     BASIC = 'basic',
     PROFESSIONAL = 'professional',
-    ENTERPRISE = 'enterprise'
+    ENTERPRISE = 'enterprise',
+    PROFESIONAL = "PROFESIONAL",
+    BUSINESS = "BUSINESS"
 }
 
 export enum SubscriptionStatus {
