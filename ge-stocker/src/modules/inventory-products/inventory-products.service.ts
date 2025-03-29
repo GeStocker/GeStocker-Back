@@ -6,6 +6,7 @@ import { Product } from '../products/entities/product.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { CreateInventoryProductsDto, InventoryProductDataDto } from './dto/create-inventory-product.dto';
 import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-inventory-product.dto';
+import { GetInventoryProductsFilterDto } from './dto/inventory-product-filter.dto';
 
 @Injectable()
 export class InventoryProductsService {
@@ -16,14 +17,34 @@ export class InventoryProductsService {
         private readonly inventoryRepository: Repository<Inventory>,
     ) {}
 
-    async getAllInventoryProducts(inventoryId: string) {
-        return await this.inventoryProductRepository
+    async getAllInventoryProducts(inventoryId: string, inventoryProductFilterDto: GetInventoryProductsFilterDto) {
+        const { search, categoryIds, sortPrice, sortStock } = inventoryProductFilterDto;
+
+        const query = await this.inventoryProductRepository
             .createQueryBuilder('inventoryProduct')
             .leftJoinAndSelect('inventoryProduct.product', 'product')
             .leftJoinAndSelect('product.category', 'category')
-            .where('inventoryProduct.inventory = :inventoryId', { inventoryId })
-            .getMany();
+            .where('inventoryProduct.inventory.id = :inventoryId', { inventoryId })
+
+        if (search) {
+            query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}%` });
+        };
+
+        if (categoryIds && categoryIds.length > 0) {
+            query.andWhere('category.id IN (:...categoryIds)', { categoryIds });
+        };
+
+        if (sortPrice) {
+            query.orderBy('inventoryProduct.price', sortPrice.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+        };
+
+        if (sortStock) {
+            query.orderBy('inventoryProduct.stock', sortStock.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+        };
+
+        return await query.getMany();
     };
+
 
     async updatePrice(inventoryProductId: string, updatePriceDto: UpdatePriceDto) {
         const inventoryProduct = await this.inventoryProductRepository.findOne({

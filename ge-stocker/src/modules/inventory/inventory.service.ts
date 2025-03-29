@@ -37,7 +37,7 @@ export class InventoryService {
   }
 
   async getBusinessInventories(businessId: string) {
-    const inventories = await this.inventoryRepository.findOne({
+    const inventories = await this.inventoryRepository.find({
       where: { business: { id: businessId } },
     });
 

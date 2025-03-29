@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { InventoryProductsService } from './inventory-products.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateInventoryProductsDto } from './dto/create-inventory-product.dto';
 import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-inventory-product.dto';
+import { GetInventoryProductsFilterDto } from './dto/inventory-product-filter.dto';
 
 @Controller('inventory-products')
 export class InventoryProductsController {
@@ -10,8 +11,11 @@ export class InventoryProductsController {
 
   @Get(':inventoryId')
   @UseGuards(AuthGuard)
-  getAllInventoryProducts(@Param('inventoryId', ParseUUIDPipe) inventoryId: string) {
-    return this.inventoryProductsService.getAllInventoryProducts(inventoryId);
+  getAllInventoryProducts(
+    @Param('inventoryId', ParseUUIDPipe) inventoryId: string,
+    @Query() inventoryProductFilterDto: GetInventoryProductsFilterDto,
+  ) {
+    return this.inventoryProductsService.getAllInventoryProducts(inventoryId, inventoryProductFilterDto);
   };
 
   @Put('price/:id')
