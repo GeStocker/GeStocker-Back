@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -32,6 +33,16 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use((new LoggerMiddleware()).use);
+
+  app.use('/payments/webhook', 
+    bodyParser.raw({ type: 'application/json' }),
+    (req, res, next) => {
+      req.rawBody = req.body.toString('utf8');
+      next();
+    }
+  );
+
+  app.use(bodyParser.json());
 
   await app.listen(process.env.PORT || 3000);
 }
