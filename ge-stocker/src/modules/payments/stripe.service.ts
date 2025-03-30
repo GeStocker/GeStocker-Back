@@ -38,7 +38,7 @@ export class StripeService {
                 quantity: 1,
             }],
             mode: 'subscription',
-            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}?session_id={{CHECKOUT_SESSION_ID}}`,
+            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: this.configService.get('FRONTEND_CANCEL_URL'),
         });
 
