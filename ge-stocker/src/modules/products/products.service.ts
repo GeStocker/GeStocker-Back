@@ -81,11 +81,11 @@ export class ProductsService {
     const query = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
-      .leftJoinAndSelect('product.inventoryProducts', 'inventoryProduct')
+      .leftJoin('product.inventoryProducts', 'inventoryProduct')
       .addSelect('SUM(inventoryProduct.stock)', 'totalStock')
       .where('product.businessId = :businessId', { businessId })
       .andWhere('product.isActive = true')
-      .groupBy('product.id, category.id, inventoryProduct.id');
+      .groupBy('product.id, category.id');
     
     if (search) {
       query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}%`});
