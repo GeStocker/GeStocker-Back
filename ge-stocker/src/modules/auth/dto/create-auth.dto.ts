@@ -2,6 +2,12 @@ import { ArrayMaxSize, IsArray, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptiona
 import { MatchPassword } from 'src/helpers/passwordMatcher';
 import { UserRole } from 'src/interfaces/roles.enum';
 
+export enum SubscriptionPlan {
+  BASIC = 'basic',
+  PROFESSIONAL = 'professional',
+  BUSINESS = 'business'
+}
+
 export class CreateAuthDto {
   @IsEmail()
   @IsNotEmpty()
@@ -40,9 +46,8 @@ export class CreateAuthDto {
   @IsEnum(UserRole, { each: true })
   roles: UserRole[];
 
-  @IsString()
-  @IsNotEmpty()
-  selectedPlan: 'monthly' | 'yearly'; // Nuevo campo añadido
+  @IsEnum(SubscriptionPlan)
+  selectedPlan: SubscriptionPlan;
 
   @IsOptional()
   @IsString()

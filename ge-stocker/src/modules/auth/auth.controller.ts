@@ -10,24 +10,20 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   @Post('/signup')
-  async create(@Body() user: CreateAuthDto) {
-    const result = await this.authService.registerUser(user);
-    return {
-      ...result.user,
-      checkoutUrl: result.checkoutUrl
-    };
+  async register(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.registerUser(createAuthDto);
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
     const loginResponse = await this.authService.loginWithGoogle(req.user);
-    
+
     let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
-    
+
     if (loginResponse.checkoutUrl) {
       redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
     }
@@ -42,7 +38,6 @@ export class AuthController {
   ) {
     const result = await this.authService.login(credentials);
 
-    // Si requiere suscripción, devolver información adicional
     if (result.requiresSubscription) {
       return {
         statusCode: HttpStatus.OK,
@@ -56,7 +51,6 @@ export class AuthController {
       };
     }
 
-    // Login exitoso normal
     return {
       statusCode: HttpStatus.OK,
       message: result.success,
