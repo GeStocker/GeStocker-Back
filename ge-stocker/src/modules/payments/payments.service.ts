@@ -46,6 +46,7 @@ export class PurchasesService {
 
         const user = purchase.user;
         user.roles = [UserRole.PROFESIONAL];
+        user.isActive = true;
         await this.usersRepository.save(user);
 
         return this.purchaseLogRepository.save(purchase);
