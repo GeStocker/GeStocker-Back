@@ -18,8 +18,10 @@ export class InventoryController {
   createInventory(
     @Body() createInventoryDto: CreateInventoryDto,
     @Param('businessId') businessId: string,
+    @Req() request: CustomRequest,
   ): Promise<Inventory> {
-    return this.inventoryService.createInventory(createInventoryDto, businessId);
+    const userId = request.user.id;
+    return this.inventoryService.createInventory(createInventoryDto, businessId, userId);
   }
 
   @Get()
