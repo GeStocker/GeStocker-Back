@@ -83,6 +83,13 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({
+    type: 'enum',
+    enum: ['active', 'inactive', 'pending_payment'],
+    default: 'pending_payment'
+  })
+  paymentStatus: 'active' | 'inactive' | 'pending_payment';
+
   @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'buisiness_id' })
   businesses: Business[];

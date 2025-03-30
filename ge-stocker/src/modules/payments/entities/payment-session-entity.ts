@@ -18,4 +18,7 @@ export class PaymentSession {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    completedAt?: Date; // Añadir esta columna
 }
