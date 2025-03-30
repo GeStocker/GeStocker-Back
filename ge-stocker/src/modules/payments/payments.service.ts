@@ -21,10 +21,7 @@ export class PaymentsService {
         private userRepository: Repository<User>,
     ) {
         const stripeKey = this.configService.getOrThrow<string>('STRIPE_SECRET_KEY');
-        this.stripe = new Stripe(stripeKey, {
-            apiVersion: '2025-02-24.acacia',
-            typescript: true
-        });
+        this.stripe = new Stripe(stripeKey);
 
         console.log('✅ Stripe inicializado correctamente');
     }
