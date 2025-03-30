@@ -73,10 +73,10 @@ export class AuthService {
     });
 
     // Creación de sesión de pago en Stripe
-    const priceId = this.getStripePriceId(selectedPlan);
+    const priceId = this.getStripePriceId(user.selectedPlan);
     const session = await this.stripeService.createCheckoutSession(
       priceId,
-      newUser.id,
+      newUser.id
     );
 
     // Registro de compra pendiente
@@ -213,19 +213,18 @@ export class AuthService {
     return this.jwtService.sign(payload, { expiresIn: '12h' });
   }
 
-  private getStripePriceId(planType: SubscriptionPlan): string {
-    const priceMap = {
-      [SubscriptionPlan.BASIC]: this.configService.get('STRIPE_BASIC_PRICE_ID'),
-      [SubscriptionPlan.PROFESSIONAL]: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
-      [SubscriptionPlan.BUSINESS]: this.configService.get('STRIPE_BUSINESS_PRICE_ID'),
+  private getStripePriceId(selectedPlan: string): string {
+    const planPriceIds = {
+      basic: this.configService.get('STRIPE_BASIC_PRICE_ID'),
+      professional: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
+      business: this.configService.get('STRIPE_BUSINESS_PRICE_ID')
     };
   
-    const priceId = priceMap[planType];
-    if (!priceId) {
-      throw new BadRequestException('Tipo de plan no válido');
+    if (!planPriceIds[selectedPlan]) {
+      throw new BadRequestException('Plan seleccionado no válido');
     }
   
-    return priceId;
+    return planPriceIds[selectedPlan];
   }
 
   async validateUser(payload: any): Promise<User| null> {
