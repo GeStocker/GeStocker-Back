@@ -35,7 +35,7 @@ export class CollaboratorsController {
   login(@Body() credentials: LoginCollaboratorDto) {
     return this.collaboratorsService.loginCollaborator(credentials);
   }
-  @Get('businessId')
+  @Get('business/:businessId')
   @UseGuards(AuthGuard)
   findBusinessCollaborators(@Param('businessId') businessId: string) {
     return this.collaboratorsService.findBusinessCollaborators(businessId);
