@@ -43,7 +43,7 @@ async handleWebhook(
 ) {
   try {
     const event = this.stripe.webhooks.constructEvent(
-      req.rawBody, // Usar el rawBody en string
+      req.rawBody, 
       signature,
       this.configService.get('STRIPE_WEBHOOK_SECRET')
     );
