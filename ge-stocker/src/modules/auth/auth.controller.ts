@@ -1,31 +1,69 @@
-import { Controller, Post, Body, Get, Req, UseGuards, Res } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
-import { GoogleAuthGuard } from './authGoogle.guard';
-import { CustomRequest } from 'src/interfaces/custom-request.interface';
+import { Controller, Post, Body, Get, UseGuards, Req, Res, HttpStatus } from "@nestjs/common";
+import { CustomRequest } from "src/interfaces/custom-request.interface";
+import { GoogleAuthGuard } from "./authGoogle.guard";
+import { CreateAuthDto, LoginAuthDto } from "./dto/create-auth.dto";
+import { ConfigService } from "@nestjs/config";
+import { AuthService } from "./auth.service";
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('/signup')
-  create(@Body() user: CreateAuthDto) {
-    return this.authService.registerUser(user);
+  async create(@Body() user: CreateAuthDto) {
+    const result = await this.authService.registerUser(user);
+    return {
+      ...result.user,
+      checkoutUrl: result.checkoutUrl
+    };
   }
-  @Post('/login')
-  login(@Body() user: LoginAuthDto) {
-    return this.authService.login(user);
-  }
-
-  @Get('google')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuth(@Req() req: CustomRequest) { }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
-    const profile = req.user;
-    const loginResponse = await this.authService.loginWithGoogle(profile);
-    return res.redirect(`https://ge-stocker.vercel.app/dashboard/perfil?token=${loginResponse.token}`);;
+    const loginResponse = await this.authService.loginWithGoogle(req.user);
+    
+    let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
+    
+    if (loginResponse.checkoutUrl) {
+      redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
+    }
+
+    return res.redirect(redirectUrl);
+  }
+
+  @Post('/login')
+  async login(
+    @Body() credentials: LoginAuthDto,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const result = await this.authService.login(credentials);
+
+    // Si requiere suscripción, devolver información adicional
+    if (result.requiresSubscription) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: result.success,
+        data: {
+          token: result.token,
+          user: result.user,
+          requiresSubscription: true,
+          checkoutUrl: result.checkoutUrl
+        }
+      };
+    }
+
+    // Login exitoso normal
+    return {
+      statusCode: HttpStatus.OK,
+      message: result.success,
+      data: {
+        token: result.token,
+        user: result.user
+      }
+    };
   }
 }

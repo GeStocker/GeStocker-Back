@@ -5,13 +5,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './authGoogle.startegy';
+import { PurchaseLog } from '../payments/entities/payment.entity';
+import { JwtService } from '@nestjs/jwt';
+import { StripeService } from '../payments/stripe.service';
+import { PurchasesService } from '../payments/payments.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, PurchaseLog]),
     PassportModule.register({ defaultStrategy: 'google' }), 
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy],
+  providers: [AuthService, GoogleStrategy, JwtService, StripeService, PurchasesService],
 })
 export class AuthModule {}
