@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
   Inject,
 } from '@nestjs/common';
-import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
+import { CreateAuthDto, LoginAuthDto, SubscriptionPlan } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
@@ -213,17 +213,19 @@ export class AuthService {
     return this.jwtService.sign(payload, { expiresIn: '12h' });
   }
 
-  private getStripePriceId(planType: string): string {
-    const plans = {
-      monthly: this.configService.get('STRIPE_MONTHLY_PRICE_ID'),
-      yearly: this.configService.get('STRIPE_YEARLY_PRICE_ID'),
+  private getStripePriceId(planType: SubscriptionPlan): string {
+    const priceMap = {
+      [SubscriptionPlan.BASIC]: this.configService.get('STRIPE_BASIC_PRICE_ID'),
+      [SubscriptionPlan.PROFESSIONAL]: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
+      [SubscriptionPlan.BUSINESS]: this.configService.get('STRIPE_BUSINESS_PRICE_ID'),
     };
-
-    if (!plans[planType]) {
+  
+    const priceId = priceMap[planType];
+    if (!priceId) {
       throw new BadRequestException('Tipo de plan no válido');
     }
-
-    return plans[planType];
+  
+    return priceId;
   }
 
   async validateUser(payload: any): Promise<User| null> {
