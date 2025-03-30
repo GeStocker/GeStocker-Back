@@ -78,8 +78,11 @@ export class CollaboratorsService {
     };
   }
 
-  async findAll() {
-    return await this.collaboratorRepository.find();
+  async findBusinessCollaborators(businessId: string) {
+    return await this.collaboratorRepository.find({
+      where: { inventory: { business: { id: businessId } } },
+      relations: ['inventory'],
+    });
   }
 
   async findOne(id: string) {

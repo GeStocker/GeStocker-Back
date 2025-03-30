@@ -35,11 +35,10 @@ export class CollaboratorsController {
   login(@Body() credentials: LoginCollaboratorDto) {
     return this.collaboratorsService.loginCollaborator(credentials);
   }
-  @Get()
+  @Get('businessId')
   @UseGuards(AuthGuard)
-  @Roles(UserRole.SUPERADMIN)
-  findAll() {
-    return this.collaboratorsService.findAll();
+  findBusinessCollaborators(@Param('businessId') businessId: string) {
+    return this.collaboratorsService.findBusinessCollaborators(businessId);
   }
   @Get(':id')
   @UseGuards(AuthGuard)
