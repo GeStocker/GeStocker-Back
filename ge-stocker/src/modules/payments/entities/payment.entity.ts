@@ -1,47 +1,40 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    CreateDateColumn,
-    UpdateDateColumn,
-} from 'typeorm';
-import { User } from 'src/modules/users/entities/user.entity';
-import { SubscriptionPlan } from 'src/interfaces/subscriptions.enum';
+// src/payments/entities/purchase-log.entity.ts
+import { User } from '../../users/entities/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+
+export enum PaymentMethod {
+    CARD = 'card',
+}
+
+export enum PaymentStatus {
+    PENDING = 'pending',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+}
 
 @Entity()
-export class Payment {
+export class PurchaseLog {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
-    amount: number;
-
-    @Column({ length: 3 })
-    currency: string;
-
-    @Column()
-    status: string;
-
-    @Column({ name: 'stripe_payment_id' })
-    stripePaymentId: string;
-
-    @Column({ name: 'invoice_url', nullable: true })
-    invoiceUrl?: string;
-
-    @Column({
-        type: 'enum',
-        enum: SubscriptionPlan,
-        enumName: 'subscription_plan_enum'
-    })
-    plan: SubscriptionPlan;
-
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt: Date;
-
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt: Date;
-
     @ManyToOne(() => User, (user) => user.payments)
     user: User;
+
+    @Column('decimal', { precision: 10, scale: 2 })
+    amount: number;
+
+    @Column({ type: 'enum', enum: PaymentMethod, default: PaymentMethod.CARD })
+    paymentMethod: PaymentMethod;
+
+    @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
+    status: PaymentStatus;
+
+    @Column()
+    stripeSessionId: string;
+
+    @CreateDateColumn()
+    purchaseDate: Date;
+
+    @Column()
+    expirationDate: Date;
 }

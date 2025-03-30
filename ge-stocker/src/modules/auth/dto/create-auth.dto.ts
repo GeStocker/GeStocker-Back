@@ -40,6 +40,10 @@ export class CreateAuthDto {
   @IsEnum(UserRole, { each: true })
   roles: UserRole[];
 
+  @IsString()
+  @IsNotEmpty()
+  selectedPlan: 'monthly' | 'yearly'; // Nuevo campo añadido
+
   @IsOptional()
   @IsString()
   img: string;
