@@ -22,12 +22,7 @@ import { MulterModule } from '@nestjs/platform-express';
 @Module({
   imports: [
     MulterModule.register({
-      dest: './uploads'}),
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRETS,
-      signOptions: {expiresIn: "12h"}
-    }),
+      dest: './uploads'}),      
     TypeOrmConfig,
     EnvConfig,
     CategoriesProductModule, 
