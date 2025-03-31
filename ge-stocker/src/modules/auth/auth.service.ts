@@ -10,6 +10,7 @@ import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { UserRole } from '../../interfaces/roles.enum';
 import { JwtService } from '@nestjs/jwt';
+import { sendEmail } from 'src/emails/config/mailer';
 
 @Injectable()
 export class AuthService {
@@ -20,34 +21,28 @@ export class AuthService {
   ) { }
 
   async registerUser(user: CreateAuthDto): Promise<Partial<User>> {
-    const {
-      email,
-      password,
-      passwordConfirmation,
-      roles,
-      ...userWithoutConfirmation
-    } = user;
+    const { email, password, passwordConfirmation, roles, ...userWithoutConfirmation } = user;
 
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
     if (existingUser) {
-      throw new BadRequestException('Correo ya registrado.');
+      throw new BadRequestException("Correo ya registrado.");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const role = roles.length > 0 ? roles[0] : UserRole.BASIC; // Asignar un rol por defecto
 
-    const role = roles[0];
-
-    if (!role) throw new BadRequestException('No role selected');
     const newUser = await this.userRepository.save({
       ...userWithoutConfirmation,
       email,
       password: hashedPassword,
       roles: [role],
-      img: '',
+      img: "",
     });
 
+    // Enviar correo de bienvenida con variables dinámicas
+    await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", {name: newUser.name});
     const { password: _, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
   }
