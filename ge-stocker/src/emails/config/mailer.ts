@@ -18,7 +18,7 @@ const copyTemplates = () => {
   }
 };
 
-// Llamamos a la función al iniciar el sistema de correos
+
 copyTemplates();
 
 
@@ -31,17 +31,17 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Función para enviar correos con Handlebars
- * @param to Email del destinatario
- * @param subject Asunto del correo
- * @param template Nombre del archivo .hbs en la carpeta `emails/templates`
- * @param variables Objeto con variables dinámicas a reemplazar en el template
+
+ * @param to
+ * @param subject 
+ * @param template 
+ * @param variables 
  */
 export const sendEmail = async (
   to: string,
   subject: string,
   template: string,
-  variables: Record<string, string> // ⬅️ Se agregan variables dinámicas
+  variables: Record<string, string>
 ) => {
   try {
     // Ruta del template
@@ -51,17 +51,17 @@ export const sendEmail = async (
       throw new Error(`Template ${template}.hbs no encontrado.`);
     }
 
-    // Leer y compilar el template de Handlebars
+    
     const templateFile = fs.readFileSync(templatePath, "utf-8");
     const compiledTemplate = handlebars.compile(templateFile);
-    const htmlContent = compiledTemplate(variables); // ⬅️ Renderizar el template con las variables
+    const htmlContent = compiledTemplate(variables);
 
-    // Enviar el correo
+    
     await transporter.sendMail({
       from: EMAIL_USER,
       to,
       subject,
-      html: htmlContent, // ⬅️ Ahora sí enviamos el HTML generado
+      html: htmlContent,
     });
 
     console.log(`Correo enviado a ${to}`);
