@@ -31,8 +31,7 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = roles.length > 0 ? roles[0] : UserRole.BASIC; // Asignar un rol por defecto
-
+    const role = roles.length > 0 ? roles[0] : UserRole.BASIC; 
     const newUser = await this.userRepository.save({
       ...userWithoutConfirmation,
       email,
@@ -41,7 +40,6 @@ export class AuthService {
       img: "",
     });
 
-    // Enviar correo de bienvenida con variables dinámicas
     await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", {name: newUser.name});
     const { password: _, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
