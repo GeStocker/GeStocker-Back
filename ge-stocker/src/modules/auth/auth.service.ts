@@ -97,7 +97,11 @@ export class AuthService {
 
   async login(
     credentials: LoginAuthDto,
-  ): Promise<string | { success: string; token: string }> {
+  ): Promise<{
+    requiresSubscription: any;
+    checkoutUrl: any;
+    user: any; success: string; token: string 
+}> {
     const { email, password } = credentials;
 
     // Buscar usuario
@@ -123,13 +127,20 @@ export class AuthService {
       );
     }
 
-    const payload = {
-      id: user.id,
-      email: user.email,
-      roles: user.roles,
-    };
+    // Generar token JWT
+    const token = this.generateJwtToken(user);
 
-    return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET || 'defaultSecretKey' });
+    return {
+      requiresSubscription: null, // Adjust as needed
+      checkoutUrl: null, // Adjust as needed
+      user: {
+        id: user.id,
+        email: user.email,
+        roles: user.roles,
+      },
+      success: 'Inicio de sesión exitoso',
+      token,
+    };
   }
 
   async loginWithGoogle(
