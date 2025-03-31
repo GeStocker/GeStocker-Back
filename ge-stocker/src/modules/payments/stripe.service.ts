@@ -46,7 +46,13 @@ export class StripeService {
     }
 
     async getCheckoutSessionUrl(sessionId: string) {
-        const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+        const session = await this.retrieveCheckoutSession(sessionId);
         return session.url;
+    }
+
+    async retrieveCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session> {
+        return this.stripe.checkout.sessions.retrieve(sessionId, {
+            expand: ['line_items.data.price.product']
+        });
     }
 }
