@@ -13,16 +13,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, PurchaseLog]),
-    PassportModule.register({ defaultStrategy: 'google' }), 
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '12h' },
+        signOptions: { expiresIn: '12h' }
       }),
-      inject: [ConfigService],
+      inject: [ConfigService]
     }),
+    TypeOrmModule.forFeature([User, PurchaseLog]),
+    PassportModule.register({ defaultStrategy: 'google' }), 
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy, JwtService, StripeService, PurchasesService],
