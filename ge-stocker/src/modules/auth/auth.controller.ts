@@ -17,6 +17,10 @@ export class AuthController {
     return this.authService.registerUser(createAuthDto);
   }
 
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth(@Req() req: CustomRequest) { }
+
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
