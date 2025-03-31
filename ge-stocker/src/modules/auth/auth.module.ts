@@ -16,6 +16,6 @@ import { PurchasesService } from '../payments/payments.service';
     PassportModule.register({ defaultStrategy: 'google' }), 
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtService, StripeService, PurchasesService],
+  providers: [AuthService, GoogleStrategy, StripeService, PurchasesService],
 })
 export class AuthModule {}
