@@ -1,5 +1,15 @@
 // src/payments/purchases.controller.ts
-import { Controller, Post, Param, UseGuards, Request } from '@nestjs/common';
+import { 
+  Controller, 
+  Post, 
+  Param, 
+  UseGuards, 
+  Request, 
+  Body, 
+  Patch, 
+  Get,
+  NotFoundException
+} from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { PurchasesService } from './payments.service';
 import { AuthGuard } from '../auth/auth.guard';
@@ -29,5 +39,41 @@ export class PurchasesController {
   @Post('success/:sessionId')
   async handleSuccess(@Param('sessionId') sessionId: string) {
     return this.purchasesService.completePurchase(sessionId);
+  }
+
+  @Patch('subscription/:subscriptionId')
+  @UseGuards(AuthGuard)
+  async updateSubscription(
+    @Param('subscriptionId') subscriptionId: string,
+    @Body('newPriceId') newPriceId: string,
+    @Request() req
+  ) {
+    return this.purchasesService.updateSubscription(
+      subscriptionId,
+      newPriceId
+    );
+  }
+
+  @Post('subscription/cancel')
+  @UseGuards(AuthGuard)
+  async cancelSubscription(
+    @Body('subscriptionId') subscriptionId: string,
+    @Body('immediate') immediate: boolean = false,
+    @Request() req
+  ) {
+    return this.purchasesService.cancelSubscription(
+      subscriptionId,
+      immediate
+    );
+  }
+
+  @Get('active-subscription')
+  @UseGuards(AuthGuard)
+  async getActiveSubscription(@Request() req) {
+    const subscription = await this.purchasesService.getActiveSubscription(req.user.id);
+    if (!subscription) {
+      throw new NotFoundException('No existe una suscripción activa');
+    }
+    return subscription;
   }
 }
