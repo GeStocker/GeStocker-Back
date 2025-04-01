@@ -14,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { StripeService } from '../payments/stripe.service';
 import { PurchasesService } from '../payments/payments.service';
 import { ConfigService } from '@nestjs/config';
+import { sendEmail } from 'src/emails/config/mailer';
 
 @Injectable()
 export class AuthService {
@@ -88,7 +89,7 @@ export class AuthService {
 
     // Excluir contraseña en la respuesta
     const { password: _, ...userWithoutPassword } = newUser;
-
+    await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", {name: newUser.name});
     return {
       user: userWithoutPassword,
       checkoutUrl: session.url ?? '',
