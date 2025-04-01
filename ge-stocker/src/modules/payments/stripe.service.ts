@@ -55,4 +55,29 @@ export class StripeService {
             expand: ['line_items.data.price.product']
         });
     }
+
+    async updateSubscription(subscriptionId: string, newPriceId: string) {
+        const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+        
+        return this.stripe.subscriptions.update(subscriptionId, {
+            items: [{
+                id: subscription.items.data[0].id,
+                price: newPriceId,
+            }],
+            proration_behavior: 'create_prorations', // o 'none' según necesidades
+            cancel_at_period_end: false
+        });
+    }
+
+    async cancelSubscription(subscriptionId: string, immediate: boolean = true) {
+        return this.stripe.subscriptions.cancel(subscriptionId, {
+            invoice_now: immediate,
+            prorate: immediate
+        });
+    }
+
+    async getPriceAmount(priceId: string): Promise<number> {
+        const price = await this.stripe.prices.retrieve(priceId);
+        return price.unit_amount ? price.unit_amount / 100 : 0;
+    }
 }
