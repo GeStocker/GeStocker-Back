@@ -99,41 +99,63 @@ export class AuthService {
   async login(
     credentials: LoginAuthDto,
   ): Promise<{
-    requiresSubscription: any;
-    checkoutUrl: any;
-    user: any; success: string; token: string 
-}> {
+    requiresSubscription: boolean;
+    checkoutUrl?: string;
+    user: any;
+    success: string;
+    token: string;
+  }> {
     const { email, password } = credentials;
-
-    // Buscar usuario
+  
     const user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'password', 'roles', 'isActive'],
     });
-
+  
     if (!user) {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
-
-    // Validar contraseña
+  
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
-
-    // Verificar si el usuario completó el pago
-    if (!user.isActive) {
-      throw new UnauthorizedException(
-        'Por favor complete su suscripción para acceder.',
-      );
-    }
-
-    // Generar token JWT
+  
+    // Generar token siempre (para mantener sesión)
     const token = this.generateJwtToken(user);
+  
+    if (!user.isActive) {
+      // Buscar suscripción pendiente
+      const pendingPurchase = await this.purchasesService.getPendingPurchase(user.id);
+      
+      if (!pendingPurchase) {
+        throw new UnauthorizedException('No se encontró una suscripción pendiente');
+      }
+  
+      // Obtener URL de checkout existente
+      const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
+        pendingPurchase.stripeSessionId
+      );
 
+      if (!checkoutUrl) {
+        throw new BadRequestException('No se pudo obtener la URL de checkout');
+      }
+  
+      return {
+        requiresSubscription: true,
+        checkoutUrl,
+        user: {
+          id: user.id,
+          email: user.email,
+          roles: user.roles,
+        },
+        success: 'Complete su suscripción para acceder',
+        token,
+      };
+    }
+  
     return {
-      requiresSubscription: null, // Adjust as needed
-      checkoutUrl: null, // Adjust as needed
+      requiresSubscription: false,
       user: {
         id: user.id,
         email: user.email,

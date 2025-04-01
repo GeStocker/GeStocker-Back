@@ -10,6 +10,7 @@ export enum PaymentStatus {
     PENDING = 'pending',
     COMPLETED = 'completed',
     FAILED = 'failed',
+    CANCELED = 'canceled',
 }
 
 @Entity()
@@ -37,4 +38,7 @@ export class PurchaseLog {
 
     @Column()
     expirationDate: Date;
+
+    @Column({ nullable: true })
+    stripeSubscriptionId: string;
 }
