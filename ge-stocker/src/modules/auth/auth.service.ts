@@ -121,13 +121,6 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
 
-    // Verificar si el usuario completó el pago
-    if (!user.isActive) {
-      throw new UnauthorizedException(
-        'Por favor complete su suscripción para acceder.',
-      );
-    }
-
     // Generar token JWT
     const token = this.generateJwtToken(user);
 
