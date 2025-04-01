@@ -150,6 +150,8 @@ async cancelSubscription(subscriptionId: string, immediate: boolean = false) {
         immediate
     );
 
+    
+
     // 3. Actualizar estado
     user.isActive = false;
     purchase.status = PaymentStatus.CANCELED;
@@ -165,6 +167,22 @@ async cancelSubscription(subscriptionId: string, immediate: boolean = false) {
 
     return this.purchaseLogRepository.save(purchase);
 }
+
+async getPendingPurchase(userId: string): Promise<PurchaseLog> {
+    const purchase = await this.purchaseLogRepository.findOne({
+      where: {
+        user: { id: userId },
+        status: PaymentStatus.PENDING
+      },
+      order: { purchaseDate: 'DESC' }
+    });
+  
+    if (!purchase) {
+      throw new NotFoundException('No existe una suscripción pendiente');
+    }
+  
+    return purchase;
+  }
 
 // Helper methods
 async getActiveSubscription(userId: string) {
