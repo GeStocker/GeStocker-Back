@@ -1,75 +1,90 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+// src/payments/purchases.service.ts
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaymentMethod, PurchaseLog, PaymentStatus } from '../payments/entities/payment.entity';
+import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
-import { Payment } from './entities/payment.entity';
-import { Not, Repository } from 'typeorm';
+import { UserRole } from 'src/interfaces/roles.enum';
 import { ConfigService } from '@nestjs/config';
-import Stripe from 'stripe';
+import { StripeService } from './stripe.service';
 
 @Injectable()
-export class PaymentsService {
-    private stripe: Stripe;
-
+export class PurchasesService {
     constructor(
+        @InjectRepository(PurchaseLog)
+        private purchaseLogRepository: Repository<PurchaseLog>,
         @InjectRepository(User)
         private usersRepository: Repository<User>,
-        @InjectRepository(Payment)
-        private paymentsRepository: Repository<Payment>,
-        private configService: ConfigService,
-    ) {
+        private readonly configService: ConfigService,
+        private stripeService: StripeService,
+    ) { }
 
-    const stripeSecretKey = this.configService.get('STRIPE_SECRET_KEY');
-
-    if (!stripeSecretKey){
-        throw new Error ('STRIPE_SECRET_KEY no esta definida')
-    }
-
-    this.stripe = new Stripe((stripeSecretKey), {apiVersion: '2025-02-24.acacia'});
-    }
-
-    async createCheckoutSession(priceId: string, userId: string) {
+    async createPendingPurchase(userId: string, amount: number, sessionId: string) {
         const user = await this.usersRepository.findOneBy({ id: userId });
+        if (!user) throw new NotFoundException('Usuario no encontrado');
 
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
-        }
-        
-        const session = await this.stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [{
-            price: priceId,
-            quantity: 1,
-        }],
-            mode: 'subscription',
-            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}?session_id={{CHECKOUT_SESSION_ID}}`,
-            cancel_url: this.configService.get('FRONTEND_CANCEL_URL'), // falta definir la ruta de cancelación de supscripción
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 30);
+
+        const purchase = this.purchaseLogRepository.create({
+            user,
+            amount,
+            paymentMethod: PaymentMethod.CARD,
+            status: PaymentStatus.PENDING,
+            stripeSessionId: sessionId,
+            expirationDate,
         });
 
-        return { url: session.url };
+        return this.purchaseLogRepository.save(purchase);
     }
 
-    async handleWebhook(payload: any, sig: string) {
-        const stripeSecretKey = this.configService.get('STRIPE_WEBHOOK_SECRET');
-        const event = this.stripe.webhooks.constructEvent(
-            payload,
-            sig,
-            stripeSecretKey
-        );
-
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object as any;
+    // purchases.service.ts
+async completePurchase(sessionId: string) {
+    const purchase = await this.purchaseLogRepository.findOne({
+        where: { stripeSessionId: sessionId, status: PaymentStatus.PENDING },
+        relations: ['user'],
+    });
     
-        const payment = this.paymentsRepository.create({
-            amount: session.amount_total / 100,
-            currency: session.currency,
-            status: 'succeeded',
-            stripePaymentId: session.id,
-            user: { id: session.metadata.userId }
-        });
+    if (!purchase) throw new NotFoundException('Compra no encontrada');
+
+    // Obtener sesión de Stripe con expand
+    const session = await this.stripeService.retrieveCheckoutSession(sessionId);
     
-        await this.paymentsRepository.save(payment);
+    // Verificar que existe el priceId
+    const priceId = session.line_items?.data[0]?.price?.id;
+    if (!priceId) {
+        throw new BadRequestException('No se pudo determinar el plan adquirido');
     }
 
-        return {received:true};
+    // Mapear priceId a rol
+    const role = this.getRoleFromPriceId(priceId);
+
+    // Actualizar usuario
+    const user = purchase.user;
+    user.roles = [role];
+    user.isActive = true;
+
+    // Actualizar compra
+    purchase.status = PaymentStatus.COMPLETED;
+    purchase.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    await this.usersRepository.save(user);
+    return this.purchaseLogRepository.save(purchase);
+}
+
+private getRoleFromPriceId(priceId: string): UserRole {
+    const priceMap = {
+        [this.configService.get('STRIPE_BASIC_PRICE_ID')]: UserRole.BASIC,
+        [this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID')]: UserRole.PROFESIONAL,
+        [this.configService.get('STRIPE_BUSINESS_PRICE_ID')]: UserRole.BUSINESS
+    };
+
+    const role = priceMap[priceId];
+    
+    if (!role) {
+        throw new BadRequestException(`Price ID ${priceId} no está configurado`);
     }
+
+    return role;
+}
 }
