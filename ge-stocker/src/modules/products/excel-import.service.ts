@@ -12,14 +12,31 @@ export class ExcelImportService {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
-    const rawData = XLSX.utils.sheet_to_json(sheet);
+    const rawData: any[] = XLSX.utils.sheet_to_json(sheet);
+
+    if (!rawData || rawData.length === 0) {
+        throw new Error('El archivo está vacío o no contiene datos válidos.');
+    }
+
+    const requiredFields = ['Name', 'Description', 'Category'];
+    
+    if (typeof rawData[0] !== 'object' || rawData[0] === null) {
+        throw new Error('Los datos del archivo no tienen un formato válido.');
+    }
+
+    const headers = Object.keys(rawData[0] as object);
+
+    const missingFields = requiredFields.filter(field => !headers.includes(field));
+    if (missingFields.length > 0) {
+        throw new Error(`Faltan las siguientes columnas en el archivo: ${missingFields.join(', ')}`);
+    }
 
     return rawData.map((row: any) => ({
-      name: row['Name'],
-      description: row['Description'],
-      category: row['Category'],
+        name: row['Name'],
+        description: row['Description'],
+        category: row['Category'],
     }));
-  }
+}
 
   async importProducts(fileBuffer: Buffer, userId: string, businessId: string) {
     const products = await this.parseExcel(fileBuffer);
