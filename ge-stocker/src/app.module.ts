@@ -17,21 +17,20 @@ import { SalesOrderModule } from './modules/sales-order/sales-order.module';
 import { OutgoingProductModule } from './modules/outgoing-product/outgoing-product.module';
 import { LostProductsModule } from './modules/lost-products/lost-products.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { ConfigModule } from '@nestjs/config';
 
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    EnvConfig,
     MulterModule.register({
       dest: './uploads'}),
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRETS,
-      signOptions: {expiresIn: "12h"}
-    }),
+      JwtModule.register({
+        global: true,
+        secret: process.env.JWT_SECRET, // Nombre corregido
+        signOptions: { expiresIn: "12h" }
+      }),
+      
     TypeOrmConfig,
-    EnvConfig,
     CategoriesProductModule, 
     ProductsModule, 
     InventoryModule, 

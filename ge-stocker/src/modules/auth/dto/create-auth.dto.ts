@@ -1,6 +1,12 @@
-import { ArrayMaxSize, IsArray, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Validate } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEmail, IsEnum, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Validate } from 'class-validator';
 import { MatchPassword } from 'src/helpers/passwordMatcher';
 import { UserRole } from 'src/interfaces/roles.enum';
+
+export enum SubscriptionPlan {
+  BASIC = 'basic',
+  PROFESSIONAL = 'professional',
+  BUSINESS = 'business'
+}
 
 export class CreateAuthDto {
   @IsEmail()
@@ -39,6 +45,10 @@ export class CreateAuthDto {
   @ArrayMaxSize(1)
   @IsEnum(UserRole, { each: true })
   roles: UserRole[];
+
+  @IsString()
+  @IsIn(['basic', 'professional', 'business']) // Validación explícita
+  selectedPlan: string;
 
   @IsOptional()
   @IsString()

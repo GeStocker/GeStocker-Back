@@ -7,7 +7,7 @@ export class ExcelImportController {
   constructor(private readonly excelImportService: ExcelImportService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file'))  // Asegúrate de que el campo 'file' es el nombre del campo en el formulario
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body('userId') userId: string, 
