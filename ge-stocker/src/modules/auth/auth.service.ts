@@ -27,7 +27,7 @@ export class AuthService {
     @Inject(PurchasesService)
     private readonly purchasesService: PurchasesService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async registerUser(
     user: CreateAuthDto,
@@ -89,7 +89,7 @@ export class AuthService {
 
     // Excluir contraseña en la respuesta
     const { password: _, ...userWithoutPassword } = newUser;
-    await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", {name: newUser.name});
+    await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", { name: newUser.name });
     return {
       user: userWithoutPassword,
       checkoutUrl: session.url ?? '',
@@ -106,32 +106,32 @@ export class AuthService {
     token: string;
   }> {
     const { email, password } = credentials;
-  
+
     const user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'password', 'roles', 'isActive'],
     });
-  
+
     if (!user) {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
-  
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
-  
+
     // Generar token siempre (para mantener sesión)
     const token = this.generateJwtToken(user);
-  
+
     if (!user.isActive) {
       // Buscar suscripción pendiente
       const pendingPurchase = await this.purchasesService.getPendingPurchase(user.id);
-      
+
       if (!pendingPurchase) {
         throw new UnauthorizedException('No se encontró una suscripción pendiente');
       }
-  
+
       // Obtener URL de checkout existente
       const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
         pendingPurchase.stripeSessionId
@@ -140,7 +140,7 @@ export class AuthService {
       if (!checkoutUrl) {
         throw new BadRequestException('No se pudo obtener la URL de checkout');
       }
-  
+
       return {
         requiresSubscription: true,
         checkoutUrl,
@@ -153,7 +153,7 @@ export class AuthService {
         token,
       };
     }
-  
+
     return {
       requiresSubscription: false,
       user: {
@@ -167,61 +167,62 @@ export class AuthService {
   }
 
   // auth.service.ts
-async loginWithGoogle(
-  profile: any,
-  selectedPlan: string // Nuevo parámetro
-): Promise<{ success: string; token: string; checkoutUrl?: string }> {
-  const { email, firstName, lastName, picture } = profile;
-  let isNewUser = false;
+  async loginWithGoogle(
+    profile: any,
+    selectedPlan: string // Nuevo parámetro
+  ): Promise<{ success: string; token: string; checkoutUrl?: string }> {
+    const { email, firstName, lastName, picture } = profile;
+    let isNewUser = false;
 
-  let user = await this.userRepository.findOne({
-    where: { email },
-    select: ['id', 'email', 'roles', 'isActive'],
-  });
-
-  if (!user) {
-    user = await this.userRepository.save({
-      name: `${firstName} ${lastName}`,
-      email,
-      img: picture,
-      roles: [UserRole.BASIC],
-      isActive: false,
+    let user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'roles', 'isActive'],
     });
-    isNewUser = true;
-  }
 
-  const token = this.generateJwtToken(user);
+    if (!user) {
+      user = await this.userRepository.save({
+        name: `${firstName} ${lastName}`,
+        email,
+        img: picture,
+        roles: [UserRole.BASIC],
+        isActive: false,
+      });
+      isNewUser = true;
+    }
 
-  if (isNewUser) {
-    const priceId = this.getStripePriceId(selectedPlan); // Usar el plan seleccionado
-    
-    const session = await this.stripeService.createCheckoutSession(
-      priceId,
-      user.id
-    );
+    const token = this.generateJwtToken(user);
 
-    await this.purchasesService.createPendingPurchase(
-      user.id,
-      (session.amount_total ?? 0) / 100,
-      session.id,
-    );
+    if (isNewUser) {
+      const priceId = this.getStripePriceId(selectedPlan); // Usar el plan seleccionado
+
+      const session = await this.stripeService.createCheckoutSession(
+        priceId,
+        user.id
+      );
+
+      await this.purchasesService.createPendingPurchase(
+        user.id,
+        (session.amount_total ?? 0) / 100,
+        session.id,
+      );
+
+      return {
+        success: 'Por favor complete su suscripción',
+        token,
+        checkoutUrl: session.url ?? undefined,
+      };
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Complete su suscripción para acceder');
+    }
 
     return {
-      success: 'Por favor complete su suscripción',
+      success: 'Inicio de sesión exitoso',
       token,
-      checkoutUrl: session.url ?? undefined,
     };
   }
 
-  if (!user.isActive) {
-    throw new UnauthorizedException('Complete su suscripción para acceder');
-  }
-
-  return {
-    success: 'Inicio de sesión exitoso',
-    token,
-  };
-}
 
   private generateJwtToken(user: User): string {
     const payload = {
@@ -239,15 +240,15 @@ async loginWithGoogle(
       professional: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
       business: this.configService.get('STRIPE_BUSINESS_PRICE_ID')
     };
-  
+
     if (!planPriceIds[selectedPlan]) {
       throw new BadRequestException('Plan seleccionado no válido');
     }
-  
+
     return planPriceIds[selectedPlan];
   }
 
-  async validateUser(payload: any): Promise<User| null> {
+  async validateUser(payload: any): Promise<User | null> {
     return this.userRepository.findOneBy({ id: payload.id });
   }
 }

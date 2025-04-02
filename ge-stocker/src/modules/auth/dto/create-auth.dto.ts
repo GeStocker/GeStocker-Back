@@ -47,7 +47,7 @@ export class CreateAuthDto {
   roles: UserRole[];
 
   @IsString()
-  @IsIn(['basic', 'professional', 'business']) // Validación explícita
+  @IsIn(['basic', 'professional', 'business'])
   selectedPlan: string;
 
   @IsOptional()
