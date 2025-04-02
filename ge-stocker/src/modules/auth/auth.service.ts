@@ -218,7 +218,7 @@ export class AuthService {
         checkoutUrl: checkoutUrl ?? undefined, // 🔄 URL para pagar
       };
     }
-  
+    await sendEmail(user.email, "Registro de google exitoso", "welcome", {name: user.name})
     console.log('✅ Usuario activo, iniciando sesión normalmente');
     return {
       success: 'Inicio de sesión exitoso',
