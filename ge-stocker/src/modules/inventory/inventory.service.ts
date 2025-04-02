@@ -76,9 +76,7 @@ export class InventoryService {
     throw new ForbiddenException('No tienes acceso a este inventario');
   }
 
-  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
-    const { businessId } = updateInventoryDto;
-
+  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto, businessId: string): Promise<Inventory> {
     const business = await this.businessRepository.findOne({
       where: { id: businessId },
     });

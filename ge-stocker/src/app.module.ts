@@ -17,6 +17,7 @@ import { SalesOrderModule } from './modules/sales-order/sales-order.module';
 import { OutgoingProductModule } from './modules/outgoing-product/outgoing-product.module';
 import { LostProductsModule } from './modules/lost-products/lost-products.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { MetricsModule } from './modules/metrics/metrics.module';
 
 
 @Module({
@@ -44,7 +45,8 @@ import { MulterModule } from '@nestjs/platform-express';
     PaymentsModule,
     SalesOrderModule,
     OutgoingProductModule,
-    LostProductsModule
+    LostProductsModule,
+    MetricsModule
   ], 
   controllers: [],
   providers: [],
