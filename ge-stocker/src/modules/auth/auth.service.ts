@@ -169,59 +169,63 @@ export class AuthService {
   // auth.service.ts
   async loginWithGoogle(
     profile: any,
-    selectedPlan: string // Nuevo parámetro
-  ): Promise<{ success: string; token: string; checkoutUrl?: string }> {
+    selectedPlan: string
+  ): Promise<{ success: string; token?: string; checkoutUrl?: string }> {
     const { email, firstName, lastName, picture } = profile;
     let isNewUser = false;
-
+  
     let user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
-
+  
     if (!user) {
+      // 🆕 Si el usuario no existe, lo creamos y lo mandamos a pagar
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
         img: picture,
-        roles: [UserRole.BASIC],
-        isActive: false,
+        roles: [UserRole.BASIC], // Por defecto es BASIC
+        isActive: false, // 🔴 No activo hasta que pague
       });
       isNewUser = true;
     }
-
+  
     const token = this.generateJwtToken(user);
-
-    if (isNewUser) {
-      const priceId = this.getStripePriceId(selectedPlan); // Usar el plan seleccionado
-
-      const session = await this.stripeService.createCheckoutSession(
-        priceId,
-        user.id
-      );
-
-      await this.purchasesService.createPendingPurchase(
+  
+    // 🛑 Si el usuario es nuevo o no ha pagado, mandarlo a Stripe
+    if (!user.isActive) {
+      console.log('🔴 Usuario no activo, redirigiendo a pago en Stripe');
+  
+      const priceId = this.getStripePriceId(selectedPlan); // Obtener el precio según el plan
+  
+      const session = await this.stripeService.createCheckoutSession(priceId, user.id);
+  
+      const pendingPurchase = await this.purchasesService.createPendingPurchase(
         user.id,
         (session.amount_total ?? 0) / 100,
-        session.id,
+        session.id
       );
 
+
+      const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
+        pendingPurchase.stripeSessionId
+      );
+      
+  
       return {
         success: 'Por favor complete su suscripción',
-        token,
-        checkoutUrl: session.url ?? undefined,
+        checkoutUrl: checkoutUrl ?? undefined, // 🔄 URL para pagar
       };
     }
-
-    if (!user.isActive) {
-      throw new UnauthorizedException('Complete su suscripción para acceder');
-    }
-
+  
+    console.log('✅ Usuario activo, iniciando sesión normalmente');
     return {
       success: 'Inicio de sesión exitoso',
       token,
     };
   }
+  
 
 
   private generateJwtToken(user: User): string {
@@ -235,6 +239,7 @@ export class AuthService {
   }
 
   private getStripePriceId(selectedPlan: string): string {
+    console.log("plan elegido aaaaaaaa", selectedPlan)
     const planPriceIds = {
       basic: this.configService.get('STRIPE_BASIC_PRICE_ID'),
       professional: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
