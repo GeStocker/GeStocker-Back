@@ -6,9 +6,10 @@ import { SalesOrder } from '../sales-order/entities/sales-order.entity';
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
 import { LostProducts } from '../lost-products/entities/lost-product.entity';
 import { Business } from '../bussines/entities/bussines.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SalesOrder, IncomingShipment, LostProducts, Business])],
+  imports: [TypeOrmModule.forFeature([SalesOrder, IncomingShipment, LostProducts, Business, User])],
   controllers: [MetricsController],
   providers: [MetricsService],
 })
