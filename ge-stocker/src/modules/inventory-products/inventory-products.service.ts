@@ -82,4 +82,28 @@ export class InventoryProductsService {
     return await this.inventoryProductRepository.save(inventoryProduct);
   }
 
+  async lowStockMessage(
+    inventoryProductId: string,
+    userId: string,
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      return 'El usuario no fue encontrado o no existe';
+    }
+  
+    const inventoryProduct = await this.inventoryProductRepository.findOne({
+      where: { id: inventoryProductId },
+    });
+  
+    if (!inventoryProduct) {
+      return 'El producto no fue encontrado o no existe';
+    }
+  
+     if (inventoryProduct.stock < 5){
+      await sendEmail(user.email, "Stock insuficiente", "welcome", { name: user.name });
+      return 'Correo de stock bajo enviado';
+    }
+  
+    return 'Stock suficiente, no se envió correo';
+  }
 }
