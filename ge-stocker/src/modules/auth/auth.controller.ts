@@ -35,7 +35,7 @@ export class AuthController {
     const selectedPlan = req.session.selectedPlan;
     const loginResponse = await this.authService.loginWithGoogle(req.user, selectedPlan);
 
-    let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
+    let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard/perfil?token=${loginResponse.token}`;
 
     if (loginResponse.checkoutUrl) {
       redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
