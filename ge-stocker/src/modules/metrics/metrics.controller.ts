@@ -23,4 +23,11 @@ export class MetricsController {
 
     return this.metricsService.getMonthlyProfit(businessId, userId, selectedYear);
   }
+
+  @Get('low-stock/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getLowStockMetrics(@Param('businessId') businessId: string) {
+    return this.metricsService.getLowStockMetrics(businessId);
+  }
 }
