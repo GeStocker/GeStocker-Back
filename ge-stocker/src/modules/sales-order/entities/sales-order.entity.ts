@@ -1,6 +1,6 @@
 import { Inventory } from "src/modules/inventory/entities/inventory.entity";
 import { OutgoingProduct } from "src/modules/outgoing-product/entities/outgoing-product.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('sales_order')
 export class SalesOrder {
@@ -23,6 +23,7 @@ export class SalesOrder {
     customer?: string;
 
     @ManyToOne(() => Inventory, (inventory) => inventory.salesOrders)
+    @JoinColumn({ name: 'inventory_id' })
     inventory: Inventory;
 
     @OneToMany(() => OutgoingProduct, (outgoingProduct) => outgoingProduct.salesOrder)

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,6 +13,8 @@ import { Business } from '../bussines/entities/bussines.entity';
 import { CategoriesProduct } from '../categories-product/entities/categories-product.entity';
 import { FilesService } from '../files/files.service';
 import { GetBusinessProductsFilterDto } from './dto/product-filters.dto';
+import { User } from '../users/entities/user.entity';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 @Injectable()
 export class ProductsService {
@@ -22,6 +25,8 @@ export class ProductsService {
     private readonly businessRepository: Repository<Business>,
     @InjectRepository(CategoriesProduct)
     private readonly categoriesProductRepository: Repository<CategoriesProduct>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly cloudinaryService: FilesService,
   ) {}
   async createProduct(
@@ -30,20 +35,39 @@ export class ProductsService {
     businessId: string,
     file?: Express.Multer.File,
   ) {
-    const { name, description, category } = createProductDto;
+    const user =  await this.userRepository.findOne({ where: { id: userId } })
+ 
+    if(!user) throw new NotFoundException('Usuario no encontrado');
+ 
+    const { roles } = user;
 
     const business = await this.businessRepository.findOne({
       where: { id: businessId, user: { id: userId } },
     });
 
-    if (!business) throw new NotFoundException('Business not found!');
+    if (!business) throw new NotFoundException('Negocio no encontrado.');
+
+    const productCount = await this.productRepository.count({ where: { business: { id: businessId } } });
+ 
+    let maxProducts = 0;
+ 
+    if(roles.includes(UserRole.BASIC)) {
+      maxProducts = 50;
+    } else if (roles.includes(UserRole.PROFESIONAL)) {
+      maxProducts = 500
+    } else if (roles.includes(UserRole.BUSINESS)) {
+      maxProducts = Infinity;
+    };
+ 
+     if (productCount >= maxProducts) throw new ForbiddenException(`No puede crear mas de ${maxProducts} productos por Negocio en tu plan actual`);
+
+    const { name, description, category } = createProductDto;
 
     const productExistance = await this.productRepository.findOne({
       where: { name },
     });
 
-    if (productExistance)
-      throw new ConflictException('Product already exists!');
+    if (productExistance) throw new ConflictException('El producto ya existe!');
 
     let categoryEntity = await this.categoriesProductRepository.findOne({
       where: { name: category, business: { id: businessId } },
@@ -81,11 +105,11 @@ export class ProductsService {
     const query = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
-      .leftJoinAndSelect('product.inventoryProducts', 'inventoryProduct')
+      .leftJoin('product.inventoryProducts', 'inventoryProduct')
       .addSelect('SUM(inventoryProduct.stock)', 'totalStock')
       .where('product.businessId = :businessId', { businessId })
       .andWhere('product.isActive = true')
-      .groupBy('product.id, category.id, inventoryProduct.id');
+      .groupBy('product.id, category.id');
     
     if (search) {
       query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}%`});
@@ -116,7 +140,7 @@ export class ProductsService {
       relations: ['business', 'category'],
     });
 
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Producto no encontrado.');
 
     if (file) {
       const uploadResult = await this.cloudinaryService.updateProductImage(
@@ -154,7 +178,7 @@ export class ProductsService {
       where: { id: productId },
     });
 
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) throw new NotFoundException('Producto no encontrado.');
 
     product.isActive = false;
 

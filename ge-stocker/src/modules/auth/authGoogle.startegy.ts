@@ -11,12 +11,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         super({
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: 'https://gestocker-back.onrender.com/auth/google/callback',
+            callbackURL: 'http://localhost:3000/auth/google/callback',
             scope: ['email', 'profile'],
+            passReqToCallback: true,
         });
     }
 
-    async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
+    async validate(req, accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
         const { name, emails, photos } = profile;
         const user = {
             email: emails[0].value,
@@ -24,7 +25,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             lastName: name.familyName,
             picture: photos[0].value,
             accessToken,
+            selectedPlan: req.query.plan 
         };
-        done(null, user);
+        done(null, user, );
     }
 }

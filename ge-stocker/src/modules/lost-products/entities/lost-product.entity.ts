@@ -1,7 +1,7 @@
 import { InventoryProduct } from "src/modules/inventory-products/entities/inventory-products.entity";
 import { Inventory } from "src/modules/inventory/entities/inventory.entity";
 import { OutgoingProduct } from "src/modules/outgoing-product/entities/outgoing-product.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('lost_products')
 export class LostProducts {
@@ -15,6 +15,7 @@ export class LostProducts {
     date: Date;
 
     @ManyToOne(() => Inventory, (inventory) => inventory.lostProducts)
+    @JoinColumn({ name: 'inventory_id' })
     inventory: Inventory;
 
     @OneToMany(() => OutgoingProduct, (outgoingProduct) => outgoingProduct.lostProduct)

@@ -47,7 +47,6 @@ export class Business {
   user: User;
 
   @OneToMany(() => Inventory, (inventory) => inventory.business)
-  @JoinColumn({ name: 'inventory_id' })
   inventories: Inventory[];
 
   @OneToMany(() => Product, (product) => product.business)

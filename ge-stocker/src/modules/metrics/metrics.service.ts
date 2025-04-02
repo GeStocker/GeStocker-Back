@@ -1,0 +1,99 @@
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SalesOrder } from '../sales-order/entities/sales-order.entity';
+import { Repository } from 'typeorm';
+import { LostProducts } from '../lost-products/entities/lost-product.entity';
+import { Business } from '../bussines/entities/bussines.entity';
+import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
+
+@Injectable()
+export class MetricsService {
+    constructor(
+        @InjectRepository(SalesOrder)
+        private salesOrderRepository: Repository<SalesOrder>,
+        @InjectRepository(IncomingShipment)
+        private incomingShipmentRepository: Repository<IncomingShipment>,
+        @InjectRepository(LostProducts)
+        private lostProductsRepository: Repository<LostProducts>,
+        @InjectRepository(Business)
+        private businessRepository: Repository<Business>,
+    ) {}
+
+    async getMonthlyProfit(businessId: string, userId: string, year: number) {
+        const business = this.businessRepository.findOne({  
+            where: { id: businessId, user: { id: userId } },
+        });
+
+        if (!business) throw new ForbiddenException('No tienes acceso a este negocio');
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
+        const endMonth = year === currentYear ? currentMonth : 12;
+
+        const monthlyProfits: { month: number; profit: number }[] = [];
+
+        console.log(`businessId: ${businessId}, year: ${year}, endMonth: ${endMonth}`);
+
+        const sales = await this.salesOrderRepository
+            .createQueryBuilder('salesOrder')
+            .innerJoin('salesOrder.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .select([
+                'EXTRACT(MONTH FROM salesOrder.date) AS month',
+                'SUM(salesOrder.totalPrice) AS totalSales',
+            ])
+            .where('business.id = :businessId', { businessId })
+            .andWhere('EXTRACT(YEAR FROM salesOrder.date) = :year', { year })
+            .groupBy('EXTRACT(MONTH FROM salesOrder.date)')
+            .having('EXTRACT(MONTH FROM salesOrder.date) <= :endMonth', { endMonth })
+            .getRawMany();
+
+        const purchases = await this.incomingShipmentRepository
+            .createQueryBuilder('incomingShipment')
+            .innerJoin('incomingShipment.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .select([
+                'EXTRACT(MONTH FROM incomingShipment.date) AS month',
+                'SUM(incomingShipment.totalPrice) AS totalPurchase', 
+            ])
+            .where('business.id = :businessId', { businessId })
+            .andWhere('EXTRACT(YEAR FROM incomingShipment.date) = :year', { year })
+            .groupBy('EXTRACT(MONTH FROM incomingShipment.date)')
+            .having('EXTRACT(MONTH FROM incomingShipment.date) <= :endMonth', { endMonth })
+            .getRawMany();
+
+        const losses = await this.lostProductsRepository
+            .createQueryBuilder('lostProducts')
+            .leftJoin('lostProducts.inventory', 'inventory')
+            .leftJoin('inventory.business', 'business')
+            .select([
+                'EXTRACT(MONTH FROM lostProducts.date) AS month',
+                'SUM(lostProducts.totalLoss) AS totalLost', 
+            ])
+            .where('business.id = :businessId', { businessId })
+            .andWhere('EXTRACT(YEAR FROM lostProducts.date) = :year', { year })
+            .groupBy('EXTRACT(MONTH FROM lostProducts.date)')
+            .having('EXTRACT(MONTH FROM lostProducts.date) <= :endMonth', { endMonth })
+            .getRawMany();
+
+        for (let month = 1; month <= endMonth; month++) {
+            const salesOrderData = sales.find((data) => Number(data.month) === month);
+            const incomingShipmentData = purchases.find((data) => Number(data.month) === month);
+            const lostProductData = losses.find((data) => Number(data.month) === month);
+
+            const totalSales = salesOrderData && salesOrderData.totalsales ? parseFloat(salesOrderData.totalsales) : 0;
+            const totalPurchases = incomingShipmentData && incomingShipmentData.totalpurchase ? parseFloat(incomingShipmentData.totalpurchase) : 0;
+            const totalLosses = lostProductData && lostProductData.totallost ? parseFloat(lostProductData.totallost) : 0;
+
+            const profit = totalSales - (totalPurchases + totalLosses);
+
+            monthlyProfits.push({
+                month,
+                profit,
+            });
+        }
+
+        return monthlyProfits;
+    }
+}

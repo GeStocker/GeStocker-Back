@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { Business } from './entities/bussines.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 
 @Injectable()
@@ -20,7 +21,22 @@ export class BussinesService {
       where: {id: userId}
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+ 
+    const { roles } = user;
+ 
+    const businessCount = await this.businessRepository.count({ where: { user: { id: userId } } });
+ 
+    let maxBusinesses = 0;
+    if(roles.includes(UserRole.BASIC)) {
+       maxBusinesses = 1;
+    } else if (roles.includes(UserRole.PROFESIONAL)) {
+       maxBusinesses = 3;
+    } else if (roles.includes(UserRole.BUSINESS)) {
+       maxBusinesses = Infinity;
+    };
+ 
+    if(businessCount >= maxBusinesses) throw new ForbiddenException(`No puedes crear mas de ${maxBusinesses} negocios en tu plan actual`)
 
     const businessExistance = await this.businessRepository.findOne({
       where: { name: createBusinessDto.name, user: { id: userId } },
