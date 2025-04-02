@@ -37,8 +37,8 @@ export class StripeService {
                 price: priceId,
                 quantity: 1,
             }],
-            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${this.configService.get('FRONTEND_CANCEL_URL')}/pricing`,
+            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${this.configService.get('FRONTEND_CANCEL_URL')}`,
             metadata: { userId },
         });
     }
