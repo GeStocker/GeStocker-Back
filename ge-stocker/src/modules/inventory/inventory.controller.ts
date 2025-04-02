@@ -18,8 +18,10 @@ export class InventoryController {
   createInventory(
     @Body() createInventoryDto: CreateInventoryDto,
     @Param('businessId') businessId: string,
+    @Req() request: CustomRequest,
   ): Promise<Inventory> {
-    return this.inventoryService.createInventory(createInventoryDto, businessId);
+    const userId = request.user.id;
+    return this.inventoryService.createInventory(createInventoryDto, businessId, userId);
   }
 
   @Get()
@@ -46,7 +48,10 @@ export class InventoryController {
 
   @Patch(':businessId/:id')
   @UseGuards(AuthGuard)
-  updateInventory(@Param('businessId') businessId: string, @Param('id') id: string, @Body() updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
+  updateInventory(
+    @Param('businessId') businessId: string, 
+    @Param('id') id: string, 
+    @Body() updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
     return this.inventoryService.updateInventory(id, updateInventoryDto, businessId);
   }
 
