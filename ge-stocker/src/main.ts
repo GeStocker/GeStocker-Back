@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggerMiddleware } from './middlewares/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import * as passport from 'passport';
+import * as session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -27,11 +29,28 @@ async function bootstrap() {
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    credentials: true,
   });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use((new LoggerMiddleware()).use);
+
+  // 🔥 Middleware de sesión (agregar antes de passport.session())
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'mi_secreto', // Usa una variable de entorno segura
+      resave: false,
+      saveUninitialized: true, //tiene que estar true segun gepeto
+      cookie: {
+        secure: false, // Cambia a `true` si usas HTTPS en producción
+        httpOnly: false,
+        maxAge: 1000 * 60 * 60 * 24, // 1 día
+      },
+    }),
+  );
+
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   await app.listen(process.env.PORT || 3000);
 }

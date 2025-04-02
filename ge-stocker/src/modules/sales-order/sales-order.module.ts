@@ -6,9 +6,10 @@ import { SalesOrder } from './entities/sales-order.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
 import { OutgoingProduct } from '../outgoing-product/entities/outgoing-product.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SalesOrder, Inventory, InventoryProduct, OutgoingProduct])],
+  imports: [TypeOrmModule.forFeature([SalesOrder, Inventory, InventoryProduct, OutgoingProduct, User])],
   controllers: [SalesOrderController],
   providers: [SalesOrderService],
 })
