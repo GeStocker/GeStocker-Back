@@ -56,8 +56,8 @@ export class AuthController {
         statusCode: HttpStatus.OK,
         message: result.success,
         data: {
-          token: result.token,
-          user: result.user,
+          token: null,
+          user: null,
           requiresSubscription: true,
           checkoutUrl: result.checkoutUrl
         }
