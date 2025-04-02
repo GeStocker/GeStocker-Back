@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity'
 import { Repository } from 'typeorm';
@@ -24,25 +24,23 @@ export class StripeService {
         this.stripe = new Stripe((stripeSecretKey), { apiVersion: '2025-02-24.acacia' });
     }
 
+    // stripe.service.ts
     async createCheckoutSession(priceId: string, userId: string) {
-        const user = await this.usersRepository.findOneBy({ id: userId });
-
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
+        if (!priceId?.startsWith('price_')) {
+            throw new BadRequestException('ID de precio inválido');
         }
 
-        const session = await this.stripe.checkout.sessions.create({
+        return this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
+            mode: 'subscription',
             line_items: [{
                 price: priceId,
                 quantity: 1,
             }],
-            mode: 'subscription',
-            success_url: `${this.configService.get('FRONTEND_SUCCESS_URL')}?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: this.configService.get('FRONTEND_CANCEL_URL'),
+            success_url: `${this.configService.get('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${this.configService.get('FRONTEND_URL')}/pricing`,
+            metadata: { userId },
         });
-
-        return session
     }
 
     async getCheckoutSessionUrl(sessionId: string) {
@@ -58,7 +56,7 @@ export class StripeService {
 
     async updateSubscription(subscriptionId: string, newPriceId: string) {
         const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
-        
+
         return this.stripe.subscriptions.update(subscriptionId, {
             items: [{
                 id: subscription.items.data[0].id,

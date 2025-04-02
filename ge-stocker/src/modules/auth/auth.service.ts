@@ -166,65 +166,62 @@ export class AuthService {
     };
   }
 
-  async loginWithGoogle(
-    profile: any,
-  ): Promise<{ success: string; token: string; checkoutUrl?: string }> {
-    const { email, firstName, lastName, picture } = profile;
-    let isNewUser = false;
+  // auth.service.ts
+async loginWithGoogle(
+  profile: any,
+  selectedPlan: string // Nuevo parámetro
+): Promise<{ success: string; token: string; checkoutUrl?: string }> {
+  const { email, firstName, lastName, picture } = profile;
+  let isNewUser = false;
 
-    // Buscar o crear usuario
-    let user = await this.userRepository.findOne({
-      where: { email },
-      select: ['id', 'email', 'roles', 'isActive'],
+  let user = await this.userRepository.findOne({
+    where: { email },
+    select: ['id', 'email', 'roles', 'isActive'],
+  });
+
+  if (!user) {
+    user = await this.userRepository.save({
+      name: `${firstName} ${lastName}`,
+      email,
+      img: picture,
+      roles: [UserRole.BASIC],
+      isActive: false,
     });
+    isNewUser = true;
+  }
 
-    if (!user) {
-      user = await this.userRepository.save({
-        name: `${firstName} ${lastName}`,
-        email,
-        img: picture,
-        roles: [UserRole.BASIC],
-        isActive: false,
-      });
-      isNewUser = true;
-    }
+  const token = this.generateJwtToken(user);
 
-    // Generar token JWT
-    const token = this.generateJwtToken(user);
+  if (isNewUser) {
+    const priceId = this.getStripePriceId(selectedPlan); // Usar el plan seleccionado
+    
+    const session = await this.stripeService.createCheckoutSession(
+      priceId,
+      user.id
+    );
 
-    // Para nuevos usuarios, crear sesión de pago
-    if (isNewUser) {
-      const priceId = this.configService.get('STRIPE_DEFAULT_PRICE_ID');
-      const session = await this.stripeService.createCheckoutSession(
-        priceId,
-        user.id,
-      );
-
-      await this.purchasesService.createPendingPurchase(
-        user.id,
-        (session.amount_total ?? 0) / 100,
-        session.id,
-      );
-
-      return {
-        success: 'Por favor complete su suscripción',
-        token,
-        checkoutUrl: session.url ?? undefined,
-      };
-    }
-
-    // Para usuarios existentes, verificar suscripción activa
-    if (!user.isActive) {
-      throw new UnauthorizedException(
-        'Por favor complete su suscripción para acceder.',
-      );
-    }
+    await this.purchasesService.createPendingPurchase(
+      user.id,
+      (session.amount_total ?? 0) / 100,
+      session.id,
+    );
 
     return {
-      success: 'Inicio de sesión exitoso',
+      success: 'Por favor complete su suscripción',
       token,
+      checkoutUrl: session.url ?? undefined,
     };
   }
+
+  if (!user.isActive) {
+    throw new UnauthorizedException('Complete su suscripción para acceder');
+  }
+
+  return {
+    success: 'Inicio de sesión exitoso',
+    token,
+  };
+}
 
   private generateJwtToken(user: User): string {
     const payload = {

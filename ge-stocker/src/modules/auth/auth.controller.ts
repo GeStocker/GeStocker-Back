@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Res, HttpStatus } from "@nestjs/common";
+import { Controller, Post, Body, Get, UseGuards, Req, Res, HttpStatus, Query } from "@nestjs/common";
 import { CustomRequest } from "src/interfaces/custom-request.interface";
 import { GoogleAuthGuard } from "./authGoogle.guard";
 import { CreateAuthDto, LoginAuthDto } from "./dto/create-auth.dto";
@@ -17,23 +17,33 @@ export class AuthController {
     return this.authService.registerUser(createAuthDto);
   }
 
-  @Get('google')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuth(@Req() req: CustomRequest) { }
+  // auth.controller.ts
+@Get('google')
+@UseGuards(GoogleAuthGuard)
+async googleAuth(
+  @Req() req: CustomRequest,
+  @Query('plan') plan: string
+) {
+  req.session.selectedPlan = plan;
+}
 
-  @Get('google/callback')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
-    const loginResponse = await this.authService.loginWithGoogle(req.user);
+@Get('google/callback')
+@UseGuards(GoogleAuthGuard)
+async googleAuthRedirect(
+  @Req() req: CustomRequest,
+  @Res() res
+) {
+  const selectedPlan = req.session.selectedPlan;
+  const loginResponse = await this.authService.loginWithGoogle(req.user, selectedPlan);
 
-    let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
-
-    if (loginResponse.checkoutUrl) {
-      redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
-    }
-
-    return res.redirect(redirectUrl);
+  let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
+  
+  if (loginResponse.checkoutUrl) {
+    redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
   }
+
+  return res.redirect(redirectUrl);
+}
 
   @Post('/login')
   async login(
