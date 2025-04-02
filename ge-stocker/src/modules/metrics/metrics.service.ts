@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { LostProducts } from '../lost-products/entities/lost-product.entity';
 import { Business } from '../bussines/entities/bussines.entity';
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
+import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
+import { subDays } from 'date-fns';
 
 @Injectable()
 export class MetricsService {
@@ -17,6 +19,8 @@ export class MetricsService {
         private lostProductsRepository: Repository<LostProducts>,
         @InjectRepository(Business)
         private businessRepository: Repository<Business>,
+        @InjectRepository(InventoryProduct)
+        private inventoryProductRepository: Repository<InventoryProduct>,
     ) {}
 
     async getMonthlyProfit(businessId: string, userId: string, year: number) {
@@ -95,5 +99,39 @@ export class MetricsService {
         }
 
         return monthlyProfits;
+    }
+
+    async getLowStockMetrics(businessId: string) {
+        const lastWeek = subDays(new Date(), 7)
+        const query = this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .innerJoin('inventoryProduct.product', 'product')
+            .innerJoin('inventoryProduct.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+            .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+            .select([
+                'inventory.id AS "inventoryId"',
+                'inventory.name AS "inventoryName"',
+                'product.id AS "productId"',
+                'product.name AS "productName"',
+                'inventoryProduct.stock AS "currentStock"',
+                'COALESCE(SUM(outgoingProduct.quantity), 0) AS "weeklyDemand"',
+                'ROUND(inventoryProduct.stock / NULLIF(COALESCE(SUM(outgoingProduct.quantity), 0) / 7, 0), 2) AS "coverageDays"',
+                `GREATEST(
+                    0, 
+                    (7 - ROUND(inventoryProduct.stock / NULLIF(COALESCE(SUM(outgoingProduct.quantity), 0) / 7, 0), 2)) 
+                    * (COALESCE(SUM(outgoingProduct.quantity), 0) / 7)
+                ) AS "requiredStock"`,
+            ])
+            .where('business.id = :businessId', { businessId })
+            .andWhere('salesOrder.date >= :lastWeek', { lastWeek })
+            .groupBy('inventory.id, inventory.name, product.id, product.name, inventoryProduct.stock')
+            .orderBy('"coverageDays"', 'ASC')
+            .limit(5);
+
+        const productAtRisk = await query.getRawMany();
+
+        return productAtRisk;
     }
 }
