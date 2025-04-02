@@ -26,7 +26,7 @@ export const TypeOrmConfig = TypeOrmModule.forRootAsync({
         entities: [User, Business, Inventory, Product, CategoriesProduct, InventoryProduct, IncomingShipment, IncomingProduct, Collaborator, PurchaseLog, SalesOrder, OutgoingProduct, LostProducts],
         synchronize: true,
         logging: false,
-        dropSchema: true,
+        // dropSchema: true,
         ssl:{
             rejectUnauthorized: false
         }
