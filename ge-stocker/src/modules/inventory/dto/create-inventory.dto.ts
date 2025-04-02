@@ -15,8 +15,4 @@ export class CreateInventoryDto {
   @MinLength(10)
   @IsString()
   address: string;
-
-  @IsUUID()
-  @IsNotEmpty()
-  businessId: string;
 }
