@@ -23,7 +23,7 @@ export class AuthController {
     @Req() req: CustomRequest,
     @Query('plan') plan: string
   ) {
-    req.session.selectedPlan = plan;
+  req.session.selectedPlan = plan;
   }
 
   @Get('google/callback')
@@ -32,13 +32,14 @@ export class AuthController {
     @Req() req: CustomRequest,
     @Res() res
   ) {
-    const selectedPlan = req.session.selectedPlan;
+
+  const selectedPlan = req.session.selectedPlan;
     const loginResponse = await this.authService.loginWithGoogle(req.user, selectedPlan);
 
     let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard/perfil?token=${loginResponse.token}`;
 
     if (loginResponse.checkoutUrl) {
-      redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
+      redirectUrl = (loginResponse.checkoutUrl);
     }
 
     return res.redirect(redirectUrl);
