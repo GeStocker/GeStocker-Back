@@ -7,6 +7,8 @@ import { Inventory } from '../inventory/entities/inventory.entity';
 import { CreateInventoryProductsDto, InventoryProductDataDto } from './dto/create-inventory-product.dto';
 import { UpdatePriceDto, UpdateStockProductBatchDto } from './dto/update-inventory-product.dto';
 import { GetInventoryProductsFilterDto } from './dto/inventory-product-filter.dto';
+import { sendEmail } from 'src/emails/config/mailer';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class InventoryProductsService {
@@ -15,6 +17,7 @@ export class InventoryProductsService {
         private readonly inventoryProductRepository: Repository<InventoryProduct>,
         @InjectRepository(Inventory)
         private readonly inventoryRepository: Repository<Inventory>,
+
     ) {}
 
     async getAllInventoryProducts(inventoryId: string, inventoryProductFilterDto: GetInventoryProductsFilterDto) {
@@ -57,4 +60,29 @@ export class InventoryProductsService {
 
         return await this.inventoryProductRepository.save(inventoryProduct);
     };
+
+
+async lowStockMessage(inventoryProductId: string) {
+    const inventoryProduct = await this.inventoryProductRepository.findOne({
+        where: { id: inventoryProductId },
+        relations: ['product', 'inventory', 'inventory.user'],
+    });
+
+    if (!inventoryProduct) {
+        throw new NotFoundException('Producto en inventario no encontrado.');
+    }
+
+    if (inventoryProduct.stock < 5) { 
+        const user = inventoryProduct.inventory.business.user;
+        if (!user || !user.email) {
+            throw new NotFoundException('No se encontró un email asociado al inventario.');
+        }
+
+        await sendEmail(user.email, 'Producto bajo en Stock!', 'welcome', {});
+        return { message: `Correo enviado a ${user.email} por bajo stock del producto "${inventoryProduct.product.name}".` };
+    }
+
+    return { message: 'El stock es suficiente, no se envió notificación.' };
 }
+}
+
