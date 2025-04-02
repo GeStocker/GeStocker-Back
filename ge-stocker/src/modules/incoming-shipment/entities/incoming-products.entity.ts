@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { IncomingShipment } from "./incoming-shipment.entity";
 import { Product } from "src/modules/products/entities/product.entity";
 import { InventoryProduct } from "src/modules/inventory-products/entities/inventory-products.entity";
@@ -23,11 +23,11 @@ export class IncomingProduct {
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
     totalPrice: number;
 
-    @ManyToOne(() => IncomingShipment, (shipment) => shipment.products, {
-        onDelete: 'CASCADE',
-    })
+    @ManyToOne(() => IncomingShipment, (shipment) => shipment.products)
+    @JoinColumn({ name: 'incomingShipment_id' })
     shipment: IncomingShipment;
 
     @ManyToOne(() => InventoryProduct, { nullable: false })
+    @JoinColumn({ name: 'inventoryProduct_id' })
     inventoryProduct: InventoryProduct;
 }

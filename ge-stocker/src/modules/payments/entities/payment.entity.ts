@@ -1,6 +1,6 @@
 // src/payments/entities/purchase-log.entity.ts
 import { User } from '../../users/entities/user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 
 export enum PaymentMethod {
     CARD = 'card',
@@ -19,6 +19,7 @@ export class PurchaseLog {
     id: string;
 
     @ManyToOne(() => User, (user) => user.payments)
+    @JoinColumn({ name: 'user_id'})
     user: User;
 
     @Column('decimal', { precision: 10, scale: 2 })

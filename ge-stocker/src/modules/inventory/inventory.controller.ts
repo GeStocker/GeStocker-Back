@@ -44,10 +44,10 @@ export class InventoryController {
     return this.inventoryService.getInventoryById(id, request);
   }
 
-  @Patch(':id')
+  @Patch(':businessId/:id')
   @UseGuards(AuthGuard)
-  updateInventory(@Param('id') id: string, @Body() updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
-    return this.inventoryService.updateInventory(id, updateInventoryDto);
+  updateInventory(@Param('businessId') businessId: string, @Param('id') id: string, @Body() updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
+    return this.inventoryService.updateInventory(id, updateInventoryDto, businessId);
   }
 
   @Delete(':id')
