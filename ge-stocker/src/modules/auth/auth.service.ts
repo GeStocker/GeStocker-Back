@@ -170,7 +170,7 @@ export class AuthService {
   async loginWithGoogle(
     profile: any,
     selectedPlan: string
-  ): Promise<{ success: string; token?: string; checkoutUrl?: string }> {
+  ): Promise<{ success: string; token?: string; checkoutUrl?: string; isNewUser?: boolean; registerUrl?: string }> {
     const { email, firstName, lastName, picture } = profile;
     let isNewUser = false;
   
@@ -189,6 +189,14 @@ export class AuthService {
         isActive: false, // 🔴 No activo hasta que pague
       });
       isNewUser = true;
+    }
+
+    if (isNewUser) {
+      return {
+        success: 'Usuario nuevo, redirigiendo a registro',
+        isNewUser: true,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+      };
     }
   
     const token = this.generateJwtToken(user);
