@@ -17,33 +17,32 @@ export class AuthController {
     return this.authService.registerUser(createAuthDto);
   }
 
-  // auth.controller.ts
-@Get('google')
-@UseGuards(GoogleAuthGuard)
-async googleAuth(
-  @Req() req: CustomRequest,
-  @Query('plan') plan: string
-) {
-  req.session.selectedPlan = plan;
-}
-
-@Get('google/callback')
-@UseGuards(GoogleAuthGuard)
-async googleAuthRedirect(
-  @Req() req: CustomRequest,
-  @Res() res
-) {
-  const selectedPlan = req.session.selectedPlan;
-  const loginResponse = await this.authService.loginWithGoogle(req.user, selectedPlan);
-
-  let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
-  
-  if (loginResponse.checkoutUrl) {
-    redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth(
+    @Req() req: CustomRequest,
+    @Query('plan') plan: string
+  ) {
+    req.session.selectedPlan = plan;
   }
 
-  return res.redirect(redirectUrl);
-}
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthRedirect(
+    @Req() req: CustomRequest,
+    @Res() res
+  ) {
+    const selectedPlan = req.session.selectedPlan;
+    const loginResponse = await this.authService.loginWithGoogle(req.user, selectedPlan);
+
+    let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard?token=${loginResponse.token}`;
+
+    if (loginResponse.checkoutUrl) {
+      redirectUrl += `&checkoutUrl=${encodeURIComponent(loginResponse.checkoutUrl)}`;
+    }
+
+    return res.redirect(redirectUrl);
+  }
 
   @Post('/login')
   async login(
