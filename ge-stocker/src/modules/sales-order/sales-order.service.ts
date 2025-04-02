@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSalesOrderDto } from './dto/create-sales-order.dto';
 import { UpdateSalesOrderDto } from './dto/update-sales-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +11,9 @@ import { Repository } from 'typeorm';
 import { OutgoingProduct } from '../outgoing-product/entities/outgoing-product.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
+import { User } from '../users/entities/user.entity';
+import { sendEmail } from 'src/emails/config/mailer';
+import { Product } from '../products/entities/product.entity';
 
 @Injectable()
 export class SalesOrderService {
@@ -19,32 +26,61 @@ export class SalesOrderService {
     private readonly inventoryRepository: Repository<Inventory>,
     @InjectRepository(InventoryProduct)
     private readonly inventoryProductRepository: Repository<InventoryProduct>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
-  async createSalesOrder(createSalesOrderDto: CreateSalesOrderDto, inventoryId: string) {
-    const { description, discount, customer, outgoingProducts } = createSalesOrderDto;
+  async createSalesOrder(
+    createSalesOrderDto: CreateSalesOrderDto,
+    inventoryId: string,
+    userId: string
+  ) {
+    const { description, discount, customer, outgoingProducts } =
+      createSalesOrderDto;
 
-    const queryRunner = this.salesOrderRepository.manager.connection.createQueryRunner();
+    const queryRunner =
+      this.salesOrderRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
 
     try {
-      const inventory = await queryRunner.manager.findOne(Inventory, { where: { id: inventoryId } });
-  
+      const inventory = await queryRunner.manager.findOne(Inventory, {
+        where: { id: inventoryId },
+      });
+      
       if (!inventory) throw new NotFoundException('Inventario no encontrado');
-  
+      
       let totalPrice = 0;
       const updatedInventoryProducts: InventoryProduct[] = [];
       const outgoingProductsEntities: OutgoingProduct[] = [];
-  
+      
       for (const outgoingProductData of outgoingProducts) {
-        const inventoryProduct = await queryRunner.manager.findOne(InventoryProduct, { where: { id: outgoingProductData.inventoryProductId } });
-  
-        if(!inventoryProduct) throw new NotFoundException('Producto no encontrado en el inventario');
-  
-        if(inventoryProduct.stock < outgoingProductData.quantity) throw new BadRequestException(`No hay suficiente stock para el producto ${inventoryProduct.product.name}`);
-  
-        totalPrice += outgoingProductData.quantity * inventoryProduct.price;
-
-        inventoryProduct.stock -= outgoingProductData.quantity;
+        const inventoryProduct = await queryRunner.manager.findOne(
+          InventoryProduct,
+          { where: { id: outgoingProductData.inventoryProductId } },
+        );
+        
+        if (!inventoryProduct)
+          throw new NotFoundException(
+        'Producto no encontrado en el inventario',
+      );
+      
+      if (inventoryProduct.stock < outgoingProductData.quantity)
+        throw new BadRequestException(
+      `No hay suficiente stock para el producto ${inventoryProduct.product.name}`,
+    );
+    
+    totalPrice += outgoingProductData.quantity * inventoryProduct.price;
+    
+    inventoryProduct.stock -= outgoingProductData.quantity;
+    const user = await this.userRepository.findOne({where:{
+      id: userId
+    }})
+    if (!user){
+      return ("Usuario no encontrado o inexistente")
+    }
+          if (inventoryProduct.stock < 5){
+            sendEmail(user.email, "Stock bajo", "trialWarning", {name: Product.name}
+            )
+          }
         updatedInventoryProducts.push(inventoryProduct);
 
         await queryRunner.manager.save(inventoryProduct);
@@ -57,7 +93,7 @@ export class SalesOrderService {
         });
 
         outgoingProductsEntities.push(outgoingProduct);
-      };
+      }
 
       totalPrice -= discount;
 
@@ -67,7 +103,7 @@ export class SalesOrderService {
         totalPrice,
         customer,
         inventory,
-        outgoingProducts: outgoingProductsEntities
+        outgoingProducts: outgoingProductsEntities,
       });
 
       await queryRunner.manager.save(salesOrder);
@@ -80,15 +116,13 @@ export class SalesOrderService {
       await queryRunner.commitTransaction();
 
       return salesOrder;
-      
-    } catch(error) {
+    } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
       await queryRunner.release();
-    };
-  };
-  
+    }
+  }
 
   findAll() {
     return `This action returns all salesOrder`;
