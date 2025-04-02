@@ -7,9 +7,10 @@ import { IncomingProduct } from './entities/incoming-products.entity';
 import { Product } from '../products/entities/product.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([IncomingShipment, IncomingProduct, Product, Inventory, InventoryProduct])],
+  imports: [TypeOrmModule.forFeature([IncomingShipment, IncomingProduct, Product, Inventory, InventoryProduct, User])],
   controllers: [IncomingShipmentController],
   providers: [IncomingShipmentService],
 })
