@@ -47,7 +47,7 @@ export class Inventory {
   isActive: boolean;
 
   @ManyToOne(() => Business, (bussines) => bussines.inventories)
-  @JoinColumn({ name: 'bussines_id' })
+  @JoinColumn({ name: 'business_id' })
   business: Business;
 
   @OneToMany(() => InventoryProduct, (inventoryProduct) => inventoryProduct.inventory)
@@ -57,7 +57,6 @@ export class Inventory {
   incomingShipments: IncomingShipment[];
 
   @OneToMany(() => Collaborator, (collaborator) => collaborator.inventory)
-  @JoinColumn({ name: 'collaborator_id' })
   collaborators: Collaborator[];
 
   @OneToMany(() => SalesOrder, (salesOrder) => salesOrder.inventory)
