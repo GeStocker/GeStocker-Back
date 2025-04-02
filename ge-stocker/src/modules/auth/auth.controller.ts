@@ -23,23 +23,23 @@ export class AuthController {
     @Req() req: CustomRequest,
     @Query('plan') plan: string
   ) {
-  req.session.selectedPlan = plan;
+    req.session.selectedPlan = plan;
   }
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthRedirect(
-    @Req() req: CustomRequest,
-    @Res() res
-  ) {
-
-  const selectedPlan = req.session.selectedPlan;
+  async googleAuthRedirect(@Req() req: CustomRequest, @Res() res) {
+    const selectedPlan = req.session.selectedPlan;
     const loginResponse = await this.authService.loginWithGoogle(req.user, selectedPlan);
+
+    if (loginResponse.isNewUser) {
+      return res.redirect(loginResponse.registerUrl);
+    }
 
     let redirectUrl = `${this.configService.get('FRONTEND_URL')}/dashboard/perfil?token=${loginResponse.token}`;
 
     if (loginResponse.checkoutUrl) {
-      redirectUrl = (loginResponse.checkoutUrl);
+      redirectUrl = loginResponse.checkoutUrl;
     }
 
     return res.redirect(redirectUrl);
