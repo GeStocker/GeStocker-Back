@@ -12,13 +12,13 @@ import { CreateCollaboratorDto, LoginCollaboratorDto } from './dto/create-collab
 import { AuthGuard } from '../auth/auth.guard';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/interfaces/roles.enum';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('collaborators')
 export class CollaboratorsController {
   constructor(private readonly collaboratorsService: CollaboratorsService) {}
 
   @Post('/signup')
-  @UseGuards(AuthGuard)
   @Roles(
     UserRole.BASIC ||
     UserRole.PROFESIONAL ||
@@ -26,6 +26,7 @@ export class CollaboratorsController {
     UserRole.ADMIN ||
     UserRole.SUPERADMIN,
   )
+  @UseGuards(AuthGuard, RolesGuard)
   create(@Body() createCollaboratorDto: CreateCollaboratorDto) {
     return this.collaboratorsService.create(createCollaboratorDto);
   }
@@ -42,7 +43,6 @@ export class CollaboratorsController {
     return this.collaboratorsService.findAll();
   }
   @Get(':id')
-  @UseGuards(AuthGuard)
   @Roles(
     UserRole.BASIC ||
     UserRole.PROFESIONAL ||
@@ -50,12 +50,12 @@ export class CollaboratorsController {
     UserRole.ADMIN ||
     UserRole.SUPERADMIN,
   )
+  @UseGuards(AuthGuard, RolesGuard)
   findOne(@Param('id') id: string) {
     return this.collaboratorsService.findOne(id);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
   @Roles(
     UserRole.BASIC ||
     UserRole.PROFESIONAL ||
@@ -63,6 +63,7 @@ export class CollaboratorsController {
     UserRole.ADMIN ||
     UserRole.SUPERADMIN,
   )
+  @UseGuards(AuthGuard, RolesGuard)
   remove(@Param('id') id: string) {
     return this.collaboratorsService.deactivateCollaborator(id);
   }
