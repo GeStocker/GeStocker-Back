@@ -107,7 +107,7 @@ export class ProductsService {
       .leftJoinAndSelect('product.category', 'category')
       .leftJoin('product.inventoryProducts', 'inventoryProduct')
       .addSelect('SUM(inventoryProduct.stock)', 'totalStock')
-      .where('product.businessId = :businessId', { businessId })
+      .where('product.business_id = :businessId', { businessId })
       .andWhere('product.isActive = true')
       .groupBy('product.id, category.id');
     
