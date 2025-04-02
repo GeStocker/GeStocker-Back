@@ -38,6 +38,7 @@ export class Product {
     createdAt: string;
 
     @ManyToOne(() => Business, (business) => business.products)
+    @JoinColumn({ name: 'business_id' })
     business: Business;
 
     @ManyToOne(() => CategoriesProduct, category => category.product)

@@ -8,6 +8,7 @@ import { Business } from '../bussines/entities/bussines.entity';
 import { User } from '../users/entities/user.entity';
 import { Collaborator } from '../collaborators/entities/collaborator.entity';
 import { CustomRequest } from 'src/interfaces/custom-request.interface';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 @Injectable()
 export class InventoryService {
@@ -22,7 +23,25 @@ export class InventoryService {
     private readonly collaboratorRepository: Repository<Collaborator>,
   ) {}
 
-  async createInventory(createInventoryDto: CreateInventoryDto, businessId: string): Promise<Inventory> {
+  async createInventory(createInventoryDto: CreateInventoryDto, businessId: string, userId: string): Promise<Inventory> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const { roles } = user;
+
+    const inventoryCount = await this.inventoryRepository.count({ where: { business: { id: businessId } } });
+
+    let maxInventories = 0;
+    if (roles.includes(UserRole.BASIC)) {
+      maxInventories = 1;
+    } else if (roles.includes(UserRole.PROFESIONAL)) {
+      maxInventories = 5;
+    } else if (roles.includes(UserRole.BUSINESS)) {
+      maxInventories = Infinity;
+    };
+    
+    if (inventoryCount >= maxInventories) throw new ForbiddenException(`No puedes crear mas de ${maxInventories} inventarios por negocio en tu plan actual.`);
     const business = await this.businessRepository.findOne({
       where: { id: businessId },
     });
@@ -76,9 +95,7 @@ export class InventoryService {
     throw new ForbiddenException('No tienes acceso a este inventario');
   }
 
-  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
-    const { businessId } = updateInventoryDto;
-
+  async updateInventory(id: string, updateInventoryDto: UpdateInventoryDto, businessId: string): Promise<Inventory> {
     const business = await this.businessRepository.findOne({
       where: { id: businessId },
     });
