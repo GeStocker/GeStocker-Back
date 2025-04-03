@@ -90,7 +90,7 @@ async registerUser(
     await sendEmail(
       newUser.email,
       "Bienvenido a GeStocker - Prueba Gratuita",
-      "welcome-trial", 
+      "welcome", 
       {
         name: newUser.name,
         trialEndDate: trialExpiration.toLocaleDateString()
