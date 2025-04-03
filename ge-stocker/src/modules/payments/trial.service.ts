@@ -21,7 +21,7 @@ export class TrialService {
         private configService: ConfigService,
     ) { }
 
-    @Cron('0 0 * * *')
+    @Cron('*/1 * * * *')
     async handleExpiredTrials() {
         const expiredTrials = await this.purchaseLogRepository.find({
             where: {
@@ -55,7 +55,7 @@ export class TrialService {
             await sendEmail(
                 user.email,
                 'Tu prueba gratuita ha terminado',
-                'trial-ended',
+                'trialWarning',
                 {
                     name: user.name,
                     checkoutUrl: session.url ?? ''
@@ -64,19 +64,19 @@ export class TrialService {
         }
     }
 
-    @Cron('0 8 * * *')
+    @Cron('*/1 * * * *') // Se ejecuta cada minuto
     async sendTrialReminders() {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
+        const now = new Date();
+        const oneMinuteLater = new Date(now.getTime() + 60 * 1000); // Ahora + 1 minuto
+    
         const expiringTrials = await this.purchaseLogRepository.find({
             where: {
                 status: PaymentStatus.TRIAL,
-                expirationDate: Between(new Date(), tomorrow),
+                expirationDate: Between(now, oneMinuteLater), // 🔹 Solo los que expiran en el próximo minuto
             },
             relations: ['user'],
         });
-
+    
         for (const trial of expiringTrials) {
             await sendEmail(
                 trial.user.email,

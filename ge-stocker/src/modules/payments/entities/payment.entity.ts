@@ -33,7 +33,9 @@ export class PurchaseLog {
     @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
     status: PaymentStatus;
 
-    @Column()
+    @Column({
+        nullable: true
+    })
     stripeSessionId: string;
 
     @CreateDateColumn()
