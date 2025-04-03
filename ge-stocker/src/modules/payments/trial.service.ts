@@ -64,29 +64,41 @@ export class TrialService {
         }
     }
 
-    @Cron('*/1 * * * *') // Se ejecuta cada minuto
-    async sendTrialReminders() {
-        const now = new Date();
-        const oneMinuteLater = new Date(now.getTime() + 60 * 1000); // Ahora + 1 minuto
-    
+    @Cron('*/10 * * * * *') // Cada minuto para pruebas
+async sendTrialReminders() {
+
+    try {
         const expiringTrials = await this.purchaseLogRepository.find({
             where: {
                 status: PaymentStatus.TRIAL,
-                expirationDate: Between(now, oneMinuteLater), // 🔹 Solo los que expiran en el próximo minuto
+                expirationDate: LessThanOrEqual(new Date()),
             },
             relations: ['user'],
         });
-    
+
+        console.log(expiringTrials)
+
+        console.log(`Encontrados ${expiringTrials.length} trials próximos a expirar`);
+
         for (const trial of expiringTrials) {
-            await sendEmail(
-                trial.user.email,
-                'Tu prueba gratuita está por terminar',
-                'trialWarning',
-                {
-                    name: trial.user.name,
-                    expirationDate: trial.expirationDate.toISOString(),
-                }
-            );
+            console.log(`Enviando email a: ${trial.user.email}`);
+            try {
+                await sendEmail(
+                    trial.user.email,
+                    'Tu prueba gratuita está por terminar',
+                    'trialWarning',
+                    {
+                        name: trial.user.name,
+                        expirationDate: trial.expirationDate.toISOString(),
+                    }
+                );
+                console.log(`Email enviado exitosamente a ${trial.user.email}`);
+            } catch (emailError) {
+                console.error(`Error enviando email a ${trial.user.email}:`, emailError);
+            }
         }
+    } catch (dbError) {
+        console.error('Error en consulta a la base de datos:', dbError);
     }
+}
 }
