@@ -18,6 +18,7 @@ import { OutgoingProductModule } from './modules/outgoing-product/outgoing-produ
 import { LostProductsModule } from './modules/lost-products/lost-products.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
@@ -30,7 +31,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
         secret: process.env.JWT_SECRET, // Nombre corregido
         signOptions: { expiresIn: "12h" }
       }),
-      
+    ScheduleModule.forRoot(),
     TypeOrmConfig,
     CategoriesProductModule, 
     ProductsModule, 
@@ -46,7 +47,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
     SalesOrderModule,
     OutgoingProductModule,
     LostProductsModule,
-    MetricsModule
+    MetricsModule,
   ], 
   controllers: [],
   providers: [],
