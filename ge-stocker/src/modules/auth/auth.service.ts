@@ -15,6 +15,7 @@ import { StripeService } from '../payments/stripe.service';
 import { PurchasesService } from '../payments/payments.service';
 import { ConfigService } from '@nestjs/config';
 import { sendEmail } from 'src/emails/config/mailer';
+import { PaymentMethod, PaymentStatus, PurchaseLog } from '../payments/entities/payment.entity';
 
 @Injectable()
 export class AuthService {
@@ -27,74 +28,111 @@ export class AuthService {
     @Inject(PurchasesService)
     private readonly purchasesService: PurchasesService,
     private readonly configService: ConfigService,
+    @InjectRepository(PurchaseLog)
+    private readonly purchaseLogRepository: Repository<PurchaseLog>,
   ) { }
 
-  async registerUser(
-    user: CreateAuthDto,
-  ): Promise<{ user: Partial<User>; checkoutUrl: string }> {
-    const {
-      email,
-      password,
-      passwordConfirmation,
-      roles,
-      selectedPlan,
-      ...userWithoutConfirmation
-    } = user;
+async registerUser(
+  user: CreateAuthDto,
+): Promise<{ user: Partial<User>; checkoutUrl: string }> {
+  const {
+    email,
+    password,
+    passwordConfirmation,
+    roles,
+    selectedPlan,
+    ...userWithoutConfirmation
+  } = user;
 
-    // Validación de usuario existente
-    const existingUser = await this.userRepository.findOne({
-      where: { email },
+  const existingUser = await this.userRepository.findOne({
+    where: { email },
+  });
+  if (existingUser) {
+    throw new BadRequestException('Correo ya registrado.');
+  }
+
+  if (password !== passwordConfirmation) {
+    throw new BadRequestException('Las contraseñas no coinciden.');
+  }
+
+  const role = roles[0];
+  if (!role) {
+    throw new BadRequestException('No se ha seleccionado un rol.');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
+
+  const newUser = await this.userRepository.save({
+    ...userWithoutConfirmation,
+    email,
+    password: hashedPassword,
+    roles: [role],
+    img: '',
+    isActive: isBasicTrial,
+  });
+
+  if (isBasicTrial) {
+    const trialExpiration = new Date();
+    trialExpiration.setDate(trialExpiration.getDate() + 7);
+
+    const trialPurchase = this.purchaseLogRepository.create({
+      user: newUser,
+      amount: 0,
+      paymentMethod: PaymentMethod.TRIAL,
+      status: PaymentStatus.TRIAL,
+      expirationDate: trialExpiration,
     });
-    if (existingUser) {
-      throw new BadRequestException('Correo ya registrado.');
-    }
 
-    // Validación de contraseña
-    if (password !== passwordConfirmation) {
-      throw new BadRequestException('Las contraseñas no coinciden.');
-    }
-
-    // Validación de rol
-    const role = roles[0];
-    if (!role) {
-      throw new BadRequestException('No se ha seleccionado un rol.');
-    }
-
-    // Hash de contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Creación del usuario
-    const newUser = await this.userRepository.save({
-      ...userWithoutConfirmation,
-      email,
-      password: hashedPassword,
-      roles: [role],
-      img: '',
-      isActive: false, // Usuario inactivo hasta completar pago
-    });
-
-    // Creación de sesión de pago en Stripe
-    const priceId = this.getStripePriceId(user.selectedPlan);
-    const session = await this.stripeService.createCheckoutSession(
-      priceId,
-      newUser.id
+    await this.purchaseLogRepository.save(trialPurchase);
+    
+    await sendEmail(
+      newUser.email,
+      "Bienvenido a GeStocker - Prueba Gratuita",
+      "welcome-trial", 
+      {
+        name: newUser.name,
+        trialEndDate: trialExpiration.toLocaleDateString()
+      }
     );
 
-    // Registro de compra pendiente
-    await this.purchasesService.createPendingPurchase(
-      newUser.id,
-      (session.amount_total ?? 0) / 100, // Convertir de centavos
-      session.id,
-    );
-
-    // Excluir contraseña en la respuesta
-    const { password: _, ...userWithoutPassword } = newUser;
-    await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", { name: newUser.name });
     return {
-      user: userWithoutPassword,
-      checkoutUrl: session.url ?? '',
+      user: {
+        ...newUser,
+        password: undefined,
+      },
+      checkoutUrl: '' 
     };
   }
+
+  const priceId = this.getStripePriceId(selectedPlan);
+  const session = await this.stripeService.createCheckoutSession(
+    priceId,
+    newUser.id
+  );
+
+  await this.purchasesService.createPendingPurchase(
+    newUser.id,
+    (session.amount_total ?? 0) / 100,
+    session.id
+  );
+
+  await sendEmail(
+    newUser.email,
+    "Bienvenido a GeStocker",
+    "welcome",
+    { name: newUser.name }
+  );
+
+  return {
+    user: {
+      ...newUser,
+      password: undefined,
+    },
+    checkoutUrl: session.url ?? ''
+  };
+}
 
   async login(
     credentials: LoginAuthDto,
@@ -121,18 +159,15 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
 
-    // Generar token siempre (para mantener sesión)
     const token = this.generateJwtToken(user);
 
     if (!user.isActive) {
-      // Buscar suscripción pendiente
       const pendingPurchase = await this.purchasesService.getPendingPurchase(user.id);
 
       if (!pendingPurchase) {
         throw new UnauthorizedException('No se encontró una suscripción pendiente');
       }
 
-      // Obtener URL de checkout existente
       const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
         pendingPurchase.stripeSessionId
       );
@@ -166,7 +201,6 @@ export class AuthService {
     };
   }
 
-  // auth.service.ts
   async loginWithGoogle(
     profile: any,
     selectedPlan: string
@@ -180,13 +214,12 @@ export class AuthService {
     });
   
     if (!user) {
-      // 🆕 Si el usuario no existe, lo creamos y lo mandamos a pagar
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
         img: picture,
-        roles: [UserRole.BASIC], // Por defecto es BASIC
-        isActive: false, // 🔴 No activo hasta que pague
+        roles: [UserRole.BASIC],
+        isActive: false,
       });
       isNewUser = true;
     }
@@ -201,11 +234,10 @@ export class AuthService {
   
     const token = this.generateJwtToken(user);
   
-    // 🛑 Si el usuario es nuevo o no ha pagado, mandarlo a Stripe
     if (!user.isActive) {
       console.log('🔴 Usuario no activo, redirigiendo a pago en Stripe');
   
-      const priceId = this.getStripePriceId(selectedPlan); // Obtener el precio según el plan
+      const priceId = this.getStripePriceId(selectedPlan);
   
       const session = await this.stripeService.createCheckoutSession(priceId, user.id);
   
@@ -223,7 +255,7 @@ export class AuthService {
   
       return {
         success: 'Por favor complete su suscripción',
-        checkoutUrl: checkoutUrl ?? undefined, // 🔄 URL para pagar
+        checkoutUrl: checkoutUrl ?? undefined, 
       };
     }
   
