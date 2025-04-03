@@ -62,7 +62,7 @@ export class StripeService {
                 id: subscription.items.data[0].id,
                 price: newPriceId,
             }],
-            proration_behavior: 'create_prorations', // o 'none' según necesidades
+            proration_behavior: 'create_prorations',
             cancel_at_period_end: false
         });
     }
