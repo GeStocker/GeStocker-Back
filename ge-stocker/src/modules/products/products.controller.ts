@@ -30,7 +30,7 @@ export class ProductsController {
   @UseInterceptors(FileInterceptor('file'))
   createProduct(
     @Body() createProductDto: CreateProductDto,
-    @Param('business_Id') businessId: string,
+    @Param('businessId') businessId: string,
     @Req() request: CustomRequest,
     @UploadedFile() file?: Express.Multer.File,
   ) {
