@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query, Req, UseGuards } from '@nestjs/common';
 import { MetricsService } from './metrics.service';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -29,5 +29,38 @@ export class MetricsController {
   @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getLowStockMetrics(@Param('businessId') businessId: string) {
     return this.metricsService.getLowStockMetrics(businessId);
+  }
+
+  @Get('obsolete-product/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getProductsWithoutSales(
+    @Param('businessId') businessId: string, 
+    @Query('days', new DefaultValuePipe(90), ParseIntPipe) days: number,
+  ) {
+    return this.metricsService.getProductsWithoutSales(businessId, days);
+  }
+
+  @Get('profit-margin/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getProfitMargin(
+    @Param('businessId') businessId: string,
+    @Query('category') categoryId?: string,
+    @Query('expand') expand?: boolean,
+  ) {
+    return this.metricsService.getProfitMargin(businessId, categoryId, expand)
+  }
+
+  @Get('avg-sales/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getAverageSalesByProduct(
+    @Param('businessId') businessId: string,
+    @Query('category') categoryId?: string,
+    @Query('expand') expand?: boolean,
+    @Query('sortBy') sortBy: 'daily' | 'monthly' = 'daily',
+  ) {
+    return this.metricsService.getAverageSalesByProduct(businessId, sortBy, categoryId, expand)
   }
 }
