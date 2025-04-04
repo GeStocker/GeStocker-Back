@@ -27,7 +27,7 @@ export class IncomingProduct {
     @JoinColumn({ name: 'incomingShipment_id' })
     shipment: IncomingShipment;
 
-    @ManyToOne(() => InventoryProduct, { nullable: false })
+    @ManyToOne(() => InventoryProduct, (inventoryProduct) => inventoryProduct.incomingProducts)
     @JoinColumn({ name: 'inventoryProduct_id' })
     inventoryProduct: InventoryProduct;
 }
