@@ -223,14 +223,16 @@ export class AuthService {
         email,
         img: picture,
         roles: [UserRole.BASIC],
-        isActive: false,
+        isActive: false, // Se actualizará si es trial
       });
       isNewUser = true;
-      // :tubo_de_ensayo: Si eligió el plan BASIC, activar prueba gratuita
+    
+      // 🧪 Si eligió el plan BASIC, activar prueba gratuita
       const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
       if (isBasicTrial) {
         const trialExpiration = new Date();
         trialExpiration.setDate(trialExpiration.getDate() + 7);
+    
         const trialPurchase = this.purchaseLogRepository.create({
           user,
           amount: 0,
@@ -238,7 +240,13 @@ export class AuthService {
           status: PaymentStatus.TRIAL,
           expirationDate: trialExpiration,
         });
+    
         await this.purchaseLogRepository.save(trialPurchase);
+    
+        // ⚡ Activar usuario para evitar lógica de Stripe
+        user.isActive = true;
+        await this.userRepository.save(user);
+    
         await sendEmail(
           user.email,
           "Bienvenido a GeStocker - Prueba Gratuita",
@@ -249,6 +257,7 @@ export class AuthService {
           }
         );
       }
+    
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
