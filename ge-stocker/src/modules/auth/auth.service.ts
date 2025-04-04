@@ -227,41 +227,45 @@ export class AuthService {
       });
       isNewUser = true;
     
-      // 🧪 Si eligió el plan BASIC, activar prueba gratuita
-      const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
-      if (isBasicTrial) {
-        const trialExpiration = new Date();
-        trialExpiration.setDate(trialExpiration.getDate() + 7);
-    
-        const trialPurchase = this.purchaseLogRepository.create({
-          user,
-          amount: 0,
-          paymentMethod: PaymentMethod.TRIAL,
-          status: PaymentStatus.TRIAL,
-          expirationDate: trialExpiration,
-        });
-    
-        await this.purchaseLogRepository.save(trialPurchase);
-    
-        // ⚡ Activar usuario para evitar lógica de Stripe
-        user.isActive = true;
-        await this.userRepository.save(user);
-    
-        await sendEmail(
-          user.email,
-          "Bienvenido a GeStocker - Prueba Gratuita",
-          "welcome",
-          {
-            name: user.name,
-            trialEndDate: trialExpiration.toLocaleDateString(),
-          }
-        );
-      }
-    
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
         registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+      };
+    }
+    // 🧪 Si eligió el plan BASIC, activar prueba gratuita
+    const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
+    if (isBasicTrial) {
+      const trialExpiration = new Date();
+      trialExpiration.setDate(trialExpiration.getDate() + 7);
+  
+      const trialPurchase = this.purchaseLogRepository.create({
+        user,
+        amount: 0,
+        paymentMethod: PaymentMethod.TRIAL,
+        status: PaymentStatus.TRIAL,
+        expirationDate: trialExpiration,
+      });
+  
+      await this.purchaseLogRepository.save(trialPurchase);
+  
+      // ⚡ Activar usuario para evitar lógica de Stripe
+      user.isActive = true;
+      await this.userRepository.save(user);
+  
+      await sendEmail(
+        user.email,
+        "Bienvenido a GeStocker - Prueba Gratuita",
+        "welcome",
+        {
+          name: user.name,
+          trialEndDate: trialExpiration.toLocaleDateString(),
+        }
+      );
+      const token = this.generateJwtToken(user);
+      return {
+        success: 'Inicio de sesión exitoso',
+        token,
       };
     }
     const token = this.generateJwtToken(user);
