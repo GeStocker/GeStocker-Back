@@ -25,7 +25,7 @@ export class TrialService {
     private configService: ConfigService,
   ) {}
 
-  @Cron('*/10 * * * * *')
+  @Cron('*0 0 0 * * *')
   async handleExpiredTrials() {
     const expiredTrials = await this.purchaseLogRepository.find({
       where: {
@@ -34,30 +34,22 @@ export class TrialService {
       },
       relations: ['user'],
     });
-console.log(expiredTrials);
+    console.log(expiredTrials);
 
     for (const trial of expiredTrials) {
       const user = trial.user;
       user.isActive = false;
+      trial.status = PaymentStatus.PENDING;
       await this.userRepository.save(user);
-
       const priceId = this.configService.get('STRIPE_BASIC_PRICE_ID');
       const session = await this.stripeService.createCheckoutSession(
         priceId,
         user.id,
       );
-
-      const pendingPurchase = this.purchaseLogRepository.create({
-        user,
-        amount: (session.amount_total ?? 0) / 100,
-        paymentMethod: PaymentMethod.CARD,
-        status: PaymentStatus.PENDING,
-        stripeSessionId: session.id,
-      });
-console.log(pendingPurchase.status);
-
-      await this.purchaseLogRepository.save(pendingPurchase);
-
+      trial.stripeSessionId = session.id;
+      trial.amount = (session.amount_total ?? 0) / 100,
+      trial.paymentMethod = PaymentMethod.CARD;
+      await this.purchaseLogRepository.save(trial);
       await sendEmail(
         user.email,
         'Tu prueba gratuita ha terminado',
@@ -70,7 +62,7 @@ console.log(pendingPurchase.status);
     }
   }
 
-  @Cron('*/10 * * * * *') // Cada minuto para pruebas
+  @Cron('0 0 0 */2 * *')
   async sendTrialReminders() {
     try {
       const threeDaysFromNow = new Date();
@@ -79,14 +71,12 @@ console.log(pendingPurchase.status);
       const expiringTrials = await this.purchaseLogRepository.find({
         where: {
           status: PaymentStatus.TRIAL,
-          expirationDate: LessThanOrEqual(threeDaysFromNow)
+          expirationDate: LessThanOrEqual(threeDaysFromNow),
         },
         relations: ['user'],
       });
 
-
       for (const trial of expiringTrials) {
-
         try {
           await sendEmail(
             trial.user.email,
@@ -98,12 +88,9 @@ console.log(pendingPurchase.status);
             },
           );
         } catch (emailError) {
-          console.error(
-            emailError,
-          );
+          console.error(emailError);
         }
       }
-    } catch (dbError) {
-    }
+    } catch (dbError) {}
   }
 }

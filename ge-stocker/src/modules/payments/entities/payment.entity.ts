@@ -41,7 +41,9 @@ export class PurchaseLog {
     @CreateDateColumn()
     purchaseDate: Date;
 
-    @Column()
+    @Column({
+        nullable: true,
+    })
     expirationDate: Date;
 
     @Column({ nullable: true })
