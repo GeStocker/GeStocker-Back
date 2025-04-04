@@ -57,10 +57,22 @@ export class MetricsController {
   @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getAverageSalesByProduct(
     @Param('businessId') businessId: string,
+    @Query('sortBy') sortBy: 'daily' | 'monthly' = 'daily',
     @Query('category') categoryId?: string,
     @Query('expand') expand?: boolean,
-    @Query('sortBy') sortBy: 'daily' | 'monthly' = 'daily',
   ) {
     return this.metricsService.getAverageSalesByProduct(businessId, sortBy, categoryId, expand)
+  }
+
+  @Get('efficiency/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getInventoryEficiency(
+    @Param('businessId') businessId: string,
+    @Query('days') days: 30 | 60 | 90 = 30,
+    @Query('category') categoryId?: string,
+    @Query('expand') expand?: boolean,
+  ) {
+    return this.metricsService.getInventoryEficiency(businessId, days, categoryId, expand)
   }
 }
