@@ -4,9 +4,11 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Jo
 
 export enum PaymentMethod {
     CARD = 'card',
+    TRIAL = 'trial',
 }
 
 export enum PaymentStatus {
+    TRIAL = 'trial',
     PENDING = 'pending',
     COMPLETED = 'completed',
     FAILED = 'failed',
@@ -19,7 +21,7 @@ export class PurchaseLog {
     id: string;
 
     @ManyToOne(() => User, (user) => user.payments)
-    @JoinColumn({ name: 'user_id'})
+    @JoinColumn({ name: 'user_id' })
     user: User;
 
     @Column('decimal', { precision: 10, scale: 2 })
@@ -31,13 +33,17 @@ export class PurchaseLog {
     @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
     status: PaymentStatus;
 
-    @Column()
+    @Column({
+        nullable: true
+    })
     stripeSessionId: string;
 
     @CreateDateColumn()
     purchaseDate: Date;
 
-    @Column()
+    @Column({
+        nullable: true,
+    })
     expirationDate: Date;
 
     @Column({ nullable: true })
