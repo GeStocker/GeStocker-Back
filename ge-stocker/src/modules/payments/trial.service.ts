@@ -25,7 +25,7 @@ export class TrialService {
     private configService: ConfigService,
   ) {}
 
-  @Cron('*0 0 0 * * *')
+  @Cron('0 0 0 * * *')
   async handleExpiredTrials() {
     const expiredTrials = await this.purchaseLogRepository.find({
       where: {

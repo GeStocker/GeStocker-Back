@@ -32,69 +32,97 @@ export class AuthService {
     private readonly purchaseLogRepository: Repository<PurchaseLog>,
   ) { }
 
-async registerUser(
-  user: CreateAuthDto,
-): Promise<{ user: Partial<User>; checkoutUrl: string }> {
-  const {
-    email,
-    password,
-    passwordConfirmation,
-    roles,
-    selectedPlan,
-    ...userWithoutConfirmation
-  } = user;
+  async registerUser(
+    user: CreateAuthDto,
+  ): Promise<{ user: Partial<User>; checkoutUrl: string }> {
+    const {
+      email,
+      password,
+      passwordConfirmation,
+      roles,
+      selectedPlan,
+      ...userWithoutConfirmation
+    } = user;
 
-  const existingUser = await this.userRepository.findOne({
-    where: { email },
-  });
-  if (existingUser) {
-    throw new BadRequestException('Correo ya registrado.');
-  }
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('Correo ya registrado.');
+    }
 
-  if (password !== passwordConfirmation) {
-    throw new BadRequestException('Las contraseñas no coinciden.');
-  }
+    if (password !== passwordConfirmation) {
+      throw new BadRequestException('Las contraseñas no coinciden.');
+    }
 
-  const role = roles[0];
-  if (!role) {
-    throw new BadRequestException('No se ha seleccionado un rol.');
-  }
+    const role = roles[0];
+    if (!role) {
+      throw new BadRequestException('No se ha seleccionado un rol.');
+    }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
+    const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
 
-  const newUser = await this.userRepository.save({
-    ...userWithoutConfirmation,
-    email,
-    password: hashedPassword,
-    roles: [role],
-    img: '',
-    isActive: isBasicTrial,
-  });
-
-  if (isBasicTrial) {
-    const trialExpiration = new Date();
-    trialExpiration.setDate(trialExpiration.getDate() + 7);
-
-    const trialPurchase = this.purchaseLogRepository.create({
-      user: newUser,
-      amount: 0,
-      paymentMethod: PaymentMethod.TRIAL,
-      status: PaymentStatus.TRIAL,
-      expirationDate: trialExpiration,
+    const newUser = await this.userRepository.save({
+      ...userWithoutConfirmation,
+      email,
+      password: hashedPassword,
+      roles: [role],
+      img: '',
+      isActive: isBasicTrial,
     });
 
-    await this.purchaseLogRepository.save(trialPurchase);
-    
+    if (isBasicTrial) {
+      const trialExpiration = new Date();
+      trialExpiration.setDate(trialExpiration.getDate() + 7);
+
+      const trialPurchase = this.purchaseLogRepository.create({
+        user: newUser,
+        amount: 0,
+        paymentMethod: PaymentMethod.TRIAL,
+        status: PaymentStatus.TRIAL,
+        expirationDate: trialExpiration,
+      });
+
+      await this.purchaseLogRepository.save(trialPurchase);
+
+      await sendEmail(
+        newUser.email,
+        "Bienvenido a GeStocker - Prueba Gratuita",
+        "welcome",
+        {
+          name: newUser.name,
+          trialEndDate: trialExpiration.toLocaleDateString()
+        }
+      );
+
+      return {
+        user: {
+          ...newUser,
+          password: undefined,
+        },
+        checkoutUrl: ''
+      };
+    }
+
+    const priceId = this.getStripePriceId(selectedPlan);
+    const session = await this.stripeService.createCheckoutSession(
+      priceId,
+      newUser.id
+    );
+
+    await this.purchasesService.createPendingPurchase(
+      newUser.id,
+      (session.amount_total ?? 0) / 100,
+      session.id
+    );
+
     await sendEmail(
       newUser.email,
-      "Bienvenido a GeStocker - Prueba Gratuita",
-      "welcome", 
-      {
-        name: newUser.name,
-        trialEndDate: trialExpiration.toLocaleDateString()
-      }
+      "Bienvenido a GeStocker",
+      "welcome",
+      { name: newUser.name }
     );
 
     return {
@@ -102,37 +130,9 @@ async registerUser(
         ...newUser,
         password: undefined,
       },
-      checkoutUrl: '' 
+      checkoutUrl: session.url ?? ''
     };
   }
-
-  const priceId = this.getStripePriceId(selectedPlan);
-  const session = await this.stripeService.createCheckoutSession(
-    priceId,
-    newUser.id
-  );
-
-  await this.purchasesService.createPendingPurchase(
-    newUser.id,
-    (session.amount_total ?? 0) / 100,
-    session.id
-  );
-
-  await sendEmail(
-    newUser.email,
-    "Bienvenido a GeStocker",
-    "welcome",
-    { name: newUser.name }
-  );
-
-  return {
-    user: {
-      ...newUser,
-      password: undefined,
-    },
-    checkoutUrl: session.url ?? ''
-  };
-}
 
   async login(
     credentials: LoginAuthDto,
@@ -204,15 +204,19 @@ async registerUser(
   async loginWithGoogle(
     profile: any,
     selectedPlan: string
-  ): Promise<{ success: string; token?: string; checkoutUrl?: string; isNewUser?: boolean; registerUrl?: string }> {
+  ): Promise<{
+    success: string;
+    token?: string;
+    checkoutUrl?: string;
+    isNewUser?: boolean;
+    registerUrl?: string;
+  }> {
     const { email, firstName, lastName, picture } = profile;
     let isNewUser = false;
-  
     let user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
-  
     if (!user) {
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
@@ -222,50 +226,60 @@ async registerUser(
         isActive: false,
       });
       isNewUser = true;
-    }
-
-    if (isNewUser) {
+      // :tubo_de_ensayo: Si eligió el plan BASIC, activar prueba gratuita
+      const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
+      if (isBasicTrial) {
+        const trialExpiration = new Date();
+        trialExpiration.setDate(trialExpiration.getDate() + 7);
+        const trialPurchase = this.purchaseLogRepository.create({
+          user,
+          amount: 0,
+          paymentMethod: PaymentMethod.TRIAL,
+          status: PaymentStatus.TRIAL,
+          expirationDate: trialExpiration,
+        });
+        await this.purchaseLogRepository.save(trialPurchase);
+        await sendEmail(
+          user.email,
+          "Bienvenido a GeStocker - Prueba Gratuita",
+          "welcome",
+          {
+            name: user.name,
+            trialEndDate: trialExpiration.toLocaleDateString(),
+          }
+        );
+      }
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
         registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
       };
     }
-  
     const token = this.generateJwtToken(user);
-  
     if (!user.isActive) {
-      console.log('🔴 Usuario no activo, redirigiendo a pago en Stripe');
-  
+      console.log(':círculo_rojo: Usuario no activo, redirigiendo a pago en Stripe');
       const priceId = this.getStripePriceId(selectedPlan);
-  
       const session = await this.stripeService.createCheckoutSession(priceId, user.id);
-  
       const pendingPurchase = await this.purchasesService.createPendingPurchase(
         user.id,
         (session.amount_total ?? 0) / 100,
         session.id
       );
-
-
       const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
         pendingPurchase.stripeSessionId
       );
-      
-  
       return {
         success: 'Por favor complete su suscripción',
-        checkoutUrl: checkoutUrl ?? undefined, 
+        checkoutUrl: checkoutUrl ?? undefined,
       };
     }
-  
-    console.log('✅ Usuario activo, iniciando sesión normalmente');
+    console.log(':marca_de_verificación_blanca: Usuario activo, iniciando sesión normalmente');
     return {
       success: 'Inicio de sesión exitoso',
       token,
     };
   }
-  
+
 
 
   private generateJwtToken(user: User): string {
