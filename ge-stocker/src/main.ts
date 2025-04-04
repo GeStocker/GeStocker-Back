@@ -35,16 +35,15 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use((new LoggerMiddleware()).use);
 
-  // 🔥 Middleware de sesión (agregar antes de passport.session())
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'mi_secreto', // Usa una variable de entorno segura
+      secret: process.env.SESSION_SECRET || 'mi_secreto',
       resave: false,
-      saveUninitialized: true, //tiene que estar true segun gepeto
+      saveUninitialized: true,
       cookie: {
-        secure: false, // Cambia a `true` si usas HTTPS en producción
+        secure: false,
         httpOnly: false,
-        maxAge: 1000 * 60 * 60 * 24, // 1 día
+        maxAge: 1000 * 60 * 60 * 24,
       },
     }),
   );

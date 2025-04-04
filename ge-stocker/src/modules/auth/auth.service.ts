@@ -15,6 +15,7 @@ import { StripeService } from '../payments/stripe.service';
 import { PurchasesService } from '../payments/payments.service';
 import { ConfigService } from '@nestjs/config';
 import { sendEmail } from 'src/emails/config/mailer';
+import { PaymentMethod, PaymentStatus, PurchaseLog } from '../payments/entities/payment.entity';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,8 @@ export class AuthService {
     @Inject(PurchasesService)
     private readonly purchasesService: PurchasesService,
     private readonly configService: ConfigService,
+    @InjectRepository(PurchaseLog)
+    private readonly purchaseLogRepository: Repository<PurchaseLog>,
   ) { }
 
   async registerUser(
@@ -41,7 +44,6 @@ export class AuthService {
       ...userWithoutConfirmation
     } = user;
 
-    // Validación de usuario existente
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
@@ -49,50 +51,86 @@ export class AuthService {
       throw new BadRequestException('Correo ya registrado.');
     }
 
-    // Validación de contraseña
     if (password !== passwordConfirmation) {
       throw new BadRequestException('Las contraseñas no coinciden.');
     }
 
-    // Validación de rol
     const role = roles[0];
     if (!role) {
       throw new BadRequestException('No se ha seleccionado un rol.');
     }
 
-    // Hash de contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Creación del usuario
+    const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
+
     const newUser = await this.userRepository.save({
       ...userWithoutConfirmation,
       email,
       password: hashedPassword,
       roles: [role],
       img: '',
-      isActive: false, // Usuario inactivo hasta completar pago
+      isActive: isBasicTrial,
     });
 
-    // Creación de sesión de pago en Stripe
-    const priceId = this.getStripePriceId(user.selectedPlan);
+    if (isBasicTrial) {
+      const trialExpiration = new Date();
+      trialExpiration.setDate(trialExpiration.getDate() + 7);
+
+      const trialPurchase = this.purchaseLogRepository.create({
+        user: newUser,
+        amount: 0,
+        paymentMethod: PaymentMethod.TRIAL,
+        status: PaymentStatus.TRIAL,
+        expirationDate: trialExpiration,
+      });
+
+      await this.purchaseLogRepository.save(trialPurchase);
+
+      await sendEmail(
+        newUser.email,
+        "Bienvenido a GeStocker - Prueba Gratuita",
+        "welcome",
+        {
+          name: newUser.name,
+          trialEndDate: trialExpiration.toLocaleDateString()
+        }
+      );
+
+      return {
+        user: {
+          ...newUser,
+          password: undefined,
+        },
+        checkoutUrl: ''
+      };
+    }
+
+    const priceId = this.getStripePriceId(selectedPlan);
     const session = await this.stripeService.createCheckoutSession(
       priceId,
       newUser.id
     );
 
-    // Registro de compra pendiente
     await this.purchasesService.createPendingPurchase(
       newUser.id,
-      (session.amount_total ?? 0) / 100, // Convertir de centavos
-      session.id,
+      (session.amount_total ?? 0) / 100,
+      session.id
     );
 
-    // Excluir contraseña en la respuesta
-    const { password: _, ...userWithoutPassword } = newUser;
-    await sendEmail(newUser.email, "Bienvenido a GeStocker", "welcome", { name: newUser.name });
+    await sendEmail(
+      newUser.email,
+      "Bienvenido a GeStocker",
+      "welcome",
+      { name: newUser.name }
+    );
+
     return {
-      user: userWithoutPassword,
-      checkoutUrl: session.url ?? '',
+      user: {
+        ...newUser,
+        password: undefined,
+      },
+      checkoutUrl: session.url ?? ''
     };
   }
 
@@ -121,18 +159,15 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
 
-    // Generar token siempre (para mantener sesión)
     const token = this.generateJwtToken(user);
 
     if (!user.isActive) {
-      // Buscar suscripción pendiente
       const pendingPurchase = await this.purchasesService.getPendingPurchase(user.id);
 
       if (!pendingPurchase) {
         throw new UnauthorizedException('No se encontró una suscripción pendiente');
       }
 
-      // Obtener URL de checkout existente
       const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
         pendingPurchase.stripeSessionId
       );
@@ -166,74 +201,98 @@ export class AuthService {
     };
   }
 
-  // auth.service.ts
   async loginWithGoogle(
     profile: any,
     selectedPlan: string
-  ): Promise<{ success: string; token?: string; checkoutUrl?: string; isNewUser?: boolean; registerUrl?: string }> {
+  ): Promise<{
+    success: string;
+    token?: string;
+    checkoutUrl?: string;
+    isNewUser?: boolean;
+    registerUrl?: string;
+  }> {
     const { email, firstName, lastName, picture } = profile;
     let isNewUser = false;
-  
     let user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
-  
     if (!user) {
-      // 🆕 Si el usuario no existe, lo creamos y lo mandamos a pagar
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
         img: picture,
-        roles: [UserRole.BASIC], // Por defecto es BASIC
-        isActive: false, // 🔴 No activo hasta que pague
+        roles: [UserRole.BASIC],
+        isActive: false, // Se actualizará si es trial
       });
       isNewUser = true;
-    }
-
-    if (isNewUser) {
+    
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
         registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
       };
     }
+    // 🧪 Si eligió el plan BASIC, activar prueba gratuita
+    const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
+    if (isBasicTrial) {
+      const trialExpiration = new Date();
+      trialExpiration.setDate(trialExpiration.getDate() + 7);
   
+      const trialPurchase = this.purchaseLogRepository.create({
+        user,
+        amount: 0,
+        paymentMethod: PaymentMethod.TRIAL,
+        status: PaymentStatus.TRIAL,
+        expirationDate: trialExpiration,
+      });
+  
+      await this.purchaseLogRepository.save(trialPurchase);
+  
+      // ⚡ Activar usuario para evitar lógica de Stripe
+      user.isActive = true;
+      await this.userRepository.save(user);
+  
+      await sendEmail(
+        user.email,
+        "Bienvenido a GeStocker - Prueba Gratuita",
+        "welcome",
+        {
+          name: user.name,
+          trialEndDate: trialExpiration.toLocaleDateString(),
+        }
+      );
+      const token = this.generateJwtToken(user);
+      return {
+        success: 'Inicio de sesión exitoso',
+        token,
+      };
+    }
     const token = this.generateJwtToken(user);
-  
-    // 🛑 Si el usuario es nuevo o no ha pagado, mandarlo a Stripe
     if (!user.isActive) {
-      console.log('🔴 Usuario no activo, redirigiendo a pago en Stripe');
-  
-      const priceId = this.getStripePriceId(selectedPlan); // Obtener el precio según el plan
-  
+      console.log(':círculo_rojo: Usuario no activo, redirigiendo a pago en Stripe');
+      const priceId = this.getStripePriceId(selectedPlan);
       const session = await this.stripeService.createCheckoutSession(priceId, user.id);
-  
       const pendingPurchase = await this.purchasesService.createPendingPurchase(
         user.id,
         (session.amount_total ?? 0) / 100,
         session.id
       );
-
-
       const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
         pendingPurchase.stripeSessionId
       );
-      
-  
       return {
         success: 'Por favor complete su suscripción',
-        checkoutUrl: checkoutUrl ?? undefined, // 🔄 URL para pagar
+        checkoutUrl: checkoutUrl ?? undefined,
       };
     }
-  
-    console.log('✅ Usuario activo, iniciando sesión normalmente');
+    console.log(':marca_de_verificación_blanca: Usuario activo, iniciando sesión normalmente');
     return {
       success: 'Inicio de sesión exitoso',
       token,
     };
   }
-  
+
 
 
   private generateJwtToken(user: User): string {
