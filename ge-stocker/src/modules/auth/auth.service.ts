@@ -230,7 +230,7 @@ export class AuthService {
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
-        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/login`,
       };
     }
     // 🧪 Si eligió el plan BASIC, activar prueba gratuita
