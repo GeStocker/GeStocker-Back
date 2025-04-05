@@ -19,6 +19,7 @@ import { LostProductsModule } from './modules/lost-products/lost-products.module
 import { MulterModule } from '@nestjs/platform-express';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 
 
 @Module({
@@ -48,6 +49,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     OutgoingProductModule,
     LostProductsModule,
     MetricsModule,
+    SuperAdminModule,
   ], 
   controllers: [],
   providers: [],

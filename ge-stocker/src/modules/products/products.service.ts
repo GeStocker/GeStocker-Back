@@ -47,7 +47,7 @@ export class ProductsService {
 
     if (!business) throw new NotFoundException('Negocio no encontrado.');
 
-    const productCount = await this.productRepository.count({ where: { business: { id: businessId } } });
+    const productCount = await this.productRepository.count({ where: { business: { id: businessId }, isActive: true } });
  
     let maxProducts = 0;
  
