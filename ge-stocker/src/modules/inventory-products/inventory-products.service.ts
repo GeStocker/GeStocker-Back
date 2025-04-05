@@ -106,4 +106,35 @@ export class InventoryProductsService {
   
     return 'Stock suficiente, no se envió correo';
   }
+  async createInventoryProductFromImport(data: {
+    productId: string;
+    inventoryId: string;
+    stock: number;
+    price: number;
+  }) {
+    const { productId, inventoryId, stock, price } = data;
+  
+    const existing = await this.inventoryProductRepository.findOne({
+      where: {
+        product: { id: productId },
+        inventory: { id: inventoryId },
+      },
+    });
+  
+    if (existing) {
+      // Actualizamos stock y precio si ya existe
+      existing.stock = stock;
+      existing.price = price;
+      return await this.inventoryProductRepository.save(existing);
+    }
+  
+    const inventoryProduct = this.inventoryProductRepository.create({
+      product: { id: productId },
+      inventory: { id: inventoryId },
+      stock,
+      price,
+    });
+  
+    return await this.inventoryProductRepository.save(inventoryProduct);
+  }
 }
