@@ -134,4 +134,228 @@ export class MetricsService {
 
         return productAtRisk;
     }
+
+    async getProductsWithoutSales(businessId: string, days: number) {
+        const query = this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .innerJoin('inventoryProduct.product', 'product')
+            .innerJoin('inventoryProduct.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+            .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+            .select([
+                'inventory.id AS "inventoryId"',
+                'inventory.name AS "inventoryName"',
+                'product.id AS "productId"',
+                'product.name AS "productName"',
+                'inventoryProduct.stock AS "currentStock"',
+                'COALESCE(MAX(salesOrder.date), NULL) AS "lastSaleDate"',
+                `COALESCE(DATE_PART('day', NOW() - MAX(salesOrder.date)), 9999) AS "daysWithoutSales"`,
+                'COALESCE(SUM(outgoingProduct.quantity), 0) AS "totalSales"' 
+            ])
+            .where('business.id = :businessId', { businessId })
+            .groupBy('inventory.id, inventory.name, product.id, product.name, inventoryProduct.stock')
+            .having(`COALESCE(DATE_PART('day', NOW() - MAX(salesOrder.date)), 9999) >= :days`, { days })
+            .orderBy('"daysWithoutSales"', 'DESC');
+
+        const productsWithoutSales = await query.getRawMany();
+
+        if (productsWithoutSales.length > 0) return productsWithoutSales;
+
+        const leastSoldProducts = await this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .innerJoin('inventoryProduct.product', 'product')
+            .innerJoin('inventoryProduct.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+            .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+            .select([
+                'inventory.id AS "inventoryId"',
+                'inventory.name AS "inventoryName"',
+                'product.id AS "productId"',
+                'product.name AS "productName"',
+                'inventoryProduct.stock AS "currentStock"',
+                'COALESCE(MAX(salesOrder.date), NULL) AS "lastSaleDate"',
+                `COALESCE(DATE_PART('day', NOW() - MAX(salesOrder.date)), 9999) AS "daysWithoutSales"`,
+                'COALESCE(SUM(outgoingProduct.quantity), 0) AS "totalSales"'
+            ])
+            .where('business.id = :businessId', { businessId })
+            .andWhere(`salesOrder.date >= NOW() - INTERVAL '${days} days'`)
+            .groupBy('inventory.id, inventory.name, product.id, product.name, inventoryProduct.stock')
+            .orderBy('"totalSales"', 'ASC')
+            .limit(5)
+            .getRawMany();
+
+        return leastSoldProducts;
+    }
+
+    async getProfitMargin(businessId: string, categoryId?: string, expand?: boolean) {
+        const queryBuilder = this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .innerJoin('inventoryProduct.product', 'product')
+            .innerJoin('inventoryProduct.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .innerJoin('product.category', 'category')
+            .leftJoin('inventoryProduct.incomingProducts', 'incomingProduct')
+            .select([
+                'inventoryProduct.id AS "inventoryProductId"',
+                'inventory.id AS "inventoryId"',
+                'inventory.name AS "inventoryName"',
+                'product.id AS "productId"',
+                'product.name AS "productName"',
+                'COALESCE(AVG(incomingProduct.purchasePrice), 0) AS "averageCost"',
+                'inventoryProduct.price AS "sellingPrice"',
+                'ROUND(((inventoryProduct.price - COALESCE(AVG(incomingProduct.purchasePrice), 0)) / NULLIF(COALESCE(AVG(incomingProduct.purchasePrice), 0), 0)) * 100, 2) AS "profitMargin"'
+            ])
+            .where('business.id = :businessId', { businessId })
+            .groupBy('inventoryProduct.id, inventory.id, inventory.name, product.id, product.name, inventoryProduct.price')
+
+        if(categoryId) {
+            queryBuilder.andWhere('category.id = :categoryId', { categoryId });
+        }
+
+        const allProducts = await queryBuilder.getRawMany();
+
+        if(expand) return allProducts;
+
+        const groupedByInventory = allProducts.reduce((acc, curr) => {
+            const inventoryId = curr.inventoryId;
+            if(!acc[inventoryId]) acc[inventoryId] = [];
+            acc[inventoryId].push(curr);
+            return acc;
+        }, {} as Record<string, typeof allProducts>)
+
+        const result = Object.entries(groupedByInventory).map(([inventoryId, products]: [string, any[]]) => {
+            const sorted = products.sort((a, b) => b.profitMargin - a.profitMargin);
+    
+            return {
+                inventoryId,
+                inventoryName: sorted[0]?.inventoryName ?? '',
+                topHighMargin: sorted.slice(0, 5),
+                topLowMargin: sorted.slice(-5),
+            };
+        });
+    
+        return result;
+    }
+
+    async getAverageSalesByProduct(businessId: string, sortBy: 'daily' | 'monthly', categoryId?: string, expand?: boolean) {
+       const queryBuilder = this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .innerJoin('inventoryProduct.product', 'product')
+            .innerJoin('inventoryProduct.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .innerJoin('product.category', 'category')
+            .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+            .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+            .select([
+                'inventoryProduct.id AS "inventoryProductId"',
+                'inventory.id AS "inventoryId"',
+                'inventory.name AS "inventoryName"',
+                'product.id AS "productId"',
+                'product.name AS "productName"',
+                'ROUND(SUM(outgoingProduct.quantity) / :days, 2) AS "avgDailySales"',
+                'ROUND(SUM(outgoingProduct.quantity), 2) AS "avgMonthlySales"',
+            ])
+            .setParameters({ days: 30 })
+            .where('business.id = :businessId', { businessId })
+            .andWhere('salesOrder.id IS NOT NULL')
+            .andWhere('salesOrder.date >= NOW() - INTERVAL \':days days\'', { days: 30 })
+            .groupBy('inventoryProduct.id, inventory.id, inventory.name, product.id, product.name')
+            .orderBy('"avgDailySales"', 'DESC')
+
+        if(categoryId) {
+            queryBuilder.andWhere('category.id = :categoryId', { categoryId });
+        };
+
+        const allProducts = await queryBuilder.getRawMany();
+
+        if(expand) return allProducts;
+
+        const groupedByInventory = allProducts.reduce((acc, curr) => {
+            const inventoryId = curr.inventoryId;
+            if(!acc[inventoryId]) acc[inventoryId] = [];
+            acc[inventoryId].push(curr);
+            return acc;
+        }, {} as Record<string, typeof allProducts>);
+
+        const result = Object.entries(groupedByInventory).map(
+            ([inventoryId, products]: [string, any[]]) => {
+                const sorted = [...products].sort((a, b) => {
+                    const key = sortBy === 'monthly' ? 'avgMonthlySales' : 'avgDailySales';
+                    return Number(b[key]) - Number(a[key]);
+                });
+
+            return {
+                inventoryId,
+                inventoryName: sorted[0]?.inventoryName ?? '',
+                topHighAvgSales: sorted.slice(0, 5),
+                topLowAvgSales: sorted.slice(-5),
+            };
+        });
+
+        return result;
+    }
+
+    async getInventoryEficiency(businessId: string, days: number = 30, categoryId?: string, expand?: boolean) {
+        const queryBuilder = this.inventoryProductRepository
+          .createQueryBuilder('inventoryProduct')
+          .innerJoin('inventoryProduct.product', 'product')
+          .innerJoin('inventoryProduct.inventory', 'inventory')
+          .innerJoin('inventory.business', 'business')
+          .innerJoin('product.category', 'category')
+          .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+          .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+          .leftJoin('inventoryProduct.incomingProducts', 'incomingProduct')
+          .leftJoin('incomingProduct.shipment', 'incomingShipment')
+          .select([
+            'inventoryProduct.id AS "inventoryProductId"',
+            'inventory.id AS "inventoryId"',
+            'inventory.name AS "inventoryName"',
+            'product.id AS "productId"',
+            'product.name AS "productName"',
+            'COALESCE(SUM(outgoingProduct.quantity), 0) AS "totalSold"',
+            'COALESCE(SUM(incomingProduct.quantity), 0) AS "totalPurchased"',
+            `ROUND(
+              CASE 
+                WHEN COALESCE(SUM(incomingProduct.quantity), 0) = 0 
+                THEN 0 
+                ELSE (SUM(outgoingProduct.quantity)::float / NULLIF(SUM(incomingProduct.quantity), 0))::numeric * 100 
+              END, 
+            2) AS "efficiency"`
+          ])
+          .where('business.id = :businessId', { businessId })
+          .andWhere('salesOrder.id IS NOT NULL')
+          .andWhere(`salesOrder.date >= NOW() - INTERVAL '${days} days'`)
+          .andWhere(`incomingShipment.date >= NOW() - INTERVAL '${days} days'`)
+          .groupBy('inventoryProduct.id, inventory.id, inventory.name, product.id, product.name');
+
+        if(categoryId) {
+            queryBuilder.andWhere('category.id = :categoryId', { categoryId });
+        };
+
+        const allProducts = await queryBuilder.getRawMany();
+
+        if(expand) return allProducts
+
+        const groupedByInventory = allProducts.reduce((acc, curr) => {
+            const inventoryId = curr.inventoryId;
+            if(!acc[inventoryId]) acc[inventoryId] = [];
+            acc[inventoryId].push(curr);
+            return acc;
+        }, {} as Record<string, typeof allProducts>);
+
+        const result = Object.entries(groupedByInventory).map(([inventoryId, products]: [string, any[]]) => {
+            const sorted = products.sort((a, b) => b.efficiency - a.efficiency);
+
+            return {
+                inventoryId,
+                inventoryName: sorted[0]?.inventoryName ?? '',
+                topHighEfficiency: sorted.slice(0, 5),
+                topLowEfficiency: sorted.slice(-5),
+            };
+        });
+
+        return result;
+    }
 }

@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, Pri
 import { Inventory } from "../../inventory/entities/inventory.entity";
 import { Product } from "../../products/entities/product.entity";
 import { OutgoingProduct } from "src/modules/outgoing-product/entities/outgoing-product.entity";
+import { IncomingProduct } from "src/modules/incoming-shipment/entities/incoming-products.entity";
 
 @Entity('inventory_products')
 export class InventoryProduct {
@@ -35,4 +36,7 @@ export class InventoryProduct {
 
   @OneToMany(() => OutgoingProduct, (outgoingProduct) => outgoingProduct.inventoryProduct)
   outgoingProducts: OutgoingProduct[];
+  
+  @OneToMany(() => IncomingProduct, (incomingProduct) => incomingProduct.inventoryProduct)
+  incomingProducts: IncomingProduct[];
 }
