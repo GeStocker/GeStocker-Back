@@ -13,13 +13,6 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     private readonly cloudinaryService: FilesService
   ) {}
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
-
-  async findAll() {
-    return await this.userRepository.find();
-  }
 
   async findOne(id: string) {
     const userFound =  await this.userRepository.findOne({where: {id}});
@@ -45,17 +38,5 @@ export class UsersService {
     Object.assign(userFound, updateUserDto)
     await this.userRepository.save(userFound)
     return 'Usuario correctamente modificado'
-  }
-
-  async desactiveUser(id: string) {
-    const userFound = await this.userRepository.findOne({where:{id}});
-    if(!userFound){
-      throw new NotFoundException('Usuario no encontrado')
-    }
-
-    userFound.isActive = false;
-    await this.userRepository.save(userFound);
-
-    return 'Tu cuenta fue eliminada con éxito'
   }
 }
