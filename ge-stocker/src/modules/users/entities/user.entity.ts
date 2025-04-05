@@ -82,6 +82,9 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ type: 'text', nullable: true })
+  banReason?: string;
+
   @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'buisiness_id' })
   businesses: Business[];
