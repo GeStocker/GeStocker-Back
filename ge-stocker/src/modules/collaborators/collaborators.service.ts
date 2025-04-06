@@ -15,7 +15,7 @@ export class CollaboratorsService {
     @InjectRepository(Inventory)
     private readonly inventoryRepository: Repository<Inventory>,
     private readonly JwtService: JwtService,
-  ) {}
+  ) { }
   async create(collaborator: CreateCollaboratorDto) {
     const { email, username, password, inventoryId } = collaborator;
 
@@ -68,6 +68,9 @@ export class CollaboratorsService {
       username: collaborator.username,
       sub: collaborator.id,
       inventoryId: collaborator.inventory.id,
+      roles: collaborator.isAdmin
+        ? [UserRole.BUSINESS_ADMIN]
+        : [UserRole.COLLABORATOR],
     };
 
     const token = this.JwtService.sign(collaboratorPayload, { expiresIn: '12h' });
@@ -78,12 +81,34 @@ export class CollaboratorsService {
     };
   }
 
+  async promoteToAdmin(id: string) {
+    const collaborator = await this.collaboratorRepository.findOne({
+      where: { id },
+      relations: ['inventory'],
+    });
+
+    if (!collaborator) {
+      throw new NotFoundException('Colaborador no encontrado');
+    }
+    if (collaborator.isAdmin) {
+      throw new ConflictException('El colaborador ya es administrador');
+    }
+
+    collaborator.isAdmin = true;
+    await this.collaboratorRepository.save(collaborator);
+
+    const { password, ...result } = collaborator;
+    return result;
+  }
+
   async findBusinessCollaborators(businessId: string) {
     return await this.collaboratorRepository.find({
       where: { inventory: { business: { id: businessId } } },
       relations: ['inventory'],
     });
   }
+
+
 
   async findOne(id: string) {
     const collaboratorFound = await this.collaboratorRepository.findOne({

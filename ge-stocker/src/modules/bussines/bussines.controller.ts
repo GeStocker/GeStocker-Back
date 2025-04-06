@@ -4,6 +4,9 @@ import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { CustomRequest } from 'src/interfaces/custom-request.interface';
 import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 @Controller('bussines')
 export class BussinesController {
@@ -27,7 +30,8 @@ export class BussinesController {
   }
 
   @Get(':businessId')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS_ADMIN, UserRole.BUSINESS)
   getUserBusinessById(
     @Param('businessId') businessId: string,
     @Req() request: CustomRequest
