@@ -3,5 +3,7 @@ export enum UserRole {
     PROFESIONAL = 'professional',
     BUSINESS = 'business',
     ADMIN = 'admin',
-    SUPERADMIN = 'superadmin'
+    SUPERADMIN = 'superadmin',
+    COLLABORATOR = 'COLLABORATOR',
+    BUSINESS_ADMIN = 'BUSINESS_ADMIN',
 }
