@@ -25,7 +25,7 @@ export class BussinesController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   getUserBusinesses(@Req() request: CustomRequest) {
     const userId = request.user.id
     return this.businessService.getUserBusinesses(userId);
@@ -33,7 +33,7 @@ export class BussinesController {
 
   @Get(':businessId')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   getUserBusinessById(
     @Param('businessId') businessId: string,
     @Req() request: CustomRequest
@@ -44,7 +44,7 @@ export class BussinesController {
 
   @Put(':businessId')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   updateBusiness(
     @Param('id') businessId: string,
     @Body() updateBussineDto: UpdateBusinessDto,
