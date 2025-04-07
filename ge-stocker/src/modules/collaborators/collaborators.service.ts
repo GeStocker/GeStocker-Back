@@ -88,7 +88,6 @@ export class CollaboratorsService {
     });
   }
 
-  // src/modules/collaborators/collaborators.service.ts
   async promoteToAdmin(id: string) {
     const collaborator = await this.collaboratorRepository.findOne({
       where: { id },
@@ -103,6 +102,7 @@ export class CollaboratorsService {
     }
 
     collaborator.isAdmin = true;
+    collaborator.roles = [UserRole.BUSINESS_ADMIN];
     await this.collaboratorRepository.save(collaborator);
 
     const { password, ...result } = collaborator;
