@@ -30,7 +30,7 @@ export class InventoryService {
 
     const { roles } = user;
 
-    const inventoryCount = await this.inventoryRepository.count({ where: { business: { id: businessId } } });
+    const inventoryCount = await this.inventoryRepository.count({ where: { business: { id: businessId }, isActive: true } });
 
     let maxInventories = 0;
     if (roles.includes(UserRole.BASIC)) {

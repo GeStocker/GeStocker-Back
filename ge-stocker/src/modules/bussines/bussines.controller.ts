@@ -4,13 +4,17 @@ import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { CustomRequest } from 'src/interfaces/custom-request.interface';
 import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { UserRole } from 'src/interfaces/roles.enum';
 
 @Controller('bussines')
 export class BussinesController {
   constructor(private readonly businessService: BussinesService) { }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   createBusiness(
     @Body() createBusinessDto: CreateBusinessDto,
     @Req() request: CustomRequest,
@@ -20,14 +24,16 @@ export class BussinesController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   getUserBusinesses(@Req() request: CustomRequest) {
     const userId = request.user.id
     return this.businessService.getUserBusinesses(userId);
   }
 
   @Get(':businessId')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   getUserBusinessById(
     @Param('businessId') businessId: string,
     @Req() request: CustomRequest
@@ -37,7 +43,8 @@ export class BussinesController {
   }
 
   @Put(':businessId')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   updateBusiness(
     @Param('id') businessId: string,
     @Body() updateBussineDto: UpdateBusinessDto,
@@ -48,7 +55,8 @@ export class BussinesController {
   }
 
   @Put('deactivate/:businessId')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   deactivateBusiness(
     @Param('businessId') businessId: string,
     @Req() request: CustomRequest,

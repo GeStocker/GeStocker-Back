@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { CollaboratorsService } from './collaborators.service';
 import { CreateCollaboratorDto, LoginCollaboratorDto } from './dto/create-collaborator.dto';
@@ -16,7 +17,7 @@ import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('collaborators')
 export class CollaboratorsController {
-  constructor(private readonly collaboratorsService: CollaboratorsService) {}
+  constructor(private readonly collaboratorsService: CollaboratorsService) { }
 
   @Post('/signup')
   @Roles(
@@ -24,7 +25,7 @@ export class CollaboratorsController {
     UserRole.PROFESIONAL ||
     UserRole.BUSINESS ||
     UserRole.ADMIN ||
-    UserRole.SUPERADMIN
+    UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)
   create(@Body() createCollaboratorDto: CreateCollaboratorDto) {
@@ -35,6 +36,13 @@ export class CollaboratorsController {
   @UseGuards(AuthGuard)
   login(@Body() credentials: LoginCollaboratorDto) {
     return this.collaboratorsService.loginCollaborator(credentials);
+  }
+
+  @Patch(':id/promote-to-admin')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BUSINESS, UserRole.ADMIN, UserRole.SUPERADMIN)
+  async promoteToAdmin(@Param('id') id: string) {
+    return this.collaboratorsService.promoteToAdmin(id);
   }
 
   @Get('business/:businessId')
