@@ -1,12 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SalesOrder } from '../sales-order/entities/sales-order.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { LostProducts } from '../lost-products/entities/lost-product.entity';
 import { Business } from '../bussines/entities/bussines.entity';
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
 import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
 import { subDays } from 'date-fns';
+import { Inventory } from '../inventory/entities/inventory.entity';
 
 @Injectable()
 export class MetricsService {
@@ -21,6 +22,8 @@ export class MetricsService {
         private businessRepository: Repository<Business>,
         @InjectRepository(InventoryProduct)
         private inventoryProductRepository: Repository<InventoryProduct>,
+        @InjectRepository(Inventory)
+        private inventoryRepository: Repository<Inventory>,
     ) {}
 
     async getMonthlyProfit(businessId: string, userId: string, year: number) {
@@ -36,8 +39,6 @@ export class MetricsService {
         const endMonth = year === currentYear ? currentMonth : 12;
 
         const monthlyProfits: { month: number; profit: number }[] = [];
-
-        console.log(`businessId: ${businessId}, year: ${year}, endMonth: ${endMonth}`);
 
         const sales = await this.salesOrderRepository
             .createQueryBuilder('salesOrder')
@@ -183,7 +184,7 @@ export class MetricsService {
             .andWhere(`salesOrder.date >= NOW() - INTERVAL '${days} days'`)
             .groupBy('inventory.id, inventory.name, product.id, product.name, inventoryProduct.stock')
             .orderBy('"totalSales"', 'ASC')
-            .limit(5)
+            .limit(10)
             .getRawMany();
 
         return leastSoldProducts;
@@ -357,5 +358,178 @@ export class MetricsService {
         });
 
         return result;
+    }
+
+    async getLostProductsCost(businessId: string, categoryId?: string, expand?: boolean) {
+        const queryBuilder = this.inventoryProductRepository
+            .createQueryBuilder('inventoryProduct')
+            .innerJoin('inventoryProduct.inventory', 'inventory')
+            .innerJoin('inventory.business', 'business')
+            .innerJoin('inventoryProduct.product', 'product')
+            .innerJoin('product.category', 'category')
+            .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+            .leftJoin('outgoingProduct.lostProduct', 'lostProduct')
+            .leftJoin('inventoryProduct.incomingProducts', 'incomingProduct')
+            .select([
+            'inventory.id AS "inventoryId"',
+            'inventory.name AS "inventoryName"',
+            'inventoryProduct.id AS "inventoryProductId"',
+            'product.id AS "productId"',
+            'product.name AS "productName"',
+            'COALESCE(SUM(outgoingProduct.quantity), 0) AS "totalLostQuantity"',
+            'ROUND(COALESCE(AVG(incomingProduct.purchasePrice), 0), 2) AS "averageCost"',
+            'ROUND(COALESCE(SUM(outgoingProduct.quantity), 0) * COALESCE(AVG(incomingProduct.purchasePrice), 0), 2) AS "lostCost"'
+            ])
+            .where('business.id = :businessId', { businessId })
+            .andWhere('lostProduct.id IS NOT NULL')
+            .groupBy('inventoryProduct.id, inventory.id, inventory.name, product.id, product.name');
+
+        if(categoryId) {
+            queryBuilder.andWhere('category.id = :categoryId', { categoryId });
+        };
+
+        const allProducts = await queryBuilder.getRawMany();
+
+        if(expand) return allProducts;
+        
+        const groupedByInventory = allProducts.reduce((acc, curr) => {
+            const inventoryId = curr.inventoryId;
+            if (!acc[inventoryId]) acc[inventoryId] = [];
+            acc[inventoryId].push(curr);
+            return acc;
+        }, {} as Record<string, typeof allProducts>);
+
+        const result = Object.entries(groupedByInventory).map(([inventoryId, products]: [string, any[]]) => {
+            const sorted = products.sort((a, b) => b.lostCost - a.lostCost);
+            return {
+              inventoryId,
+              inventoryName: sorted[0]?.inventoryName ?? '',
+              topLostProducts: sorted.slice(0, 5),
+              totalLostCost: sorted.reduce((acc, curr) => acc + Number(curr.lostCost), 0)
+            };
+          });
+        
+        return result;
+    }
+
+    async getInventoryRotationRate(businessId: string, days: 30 | 60 | 90, categoryId?: string, expand?: boolean) {
+        const queryBuilder = this.inventoryProductRepository
+          .createQueryBuilder('inventoryProduct')
+          .innerJoin('inventoryProduct.inventory', 'inventory')
+          .innerJoin('inventory.business', 'business')
+          .innerJoin('inventoryProduct.product', 'product')
+          .innerJoin('product.category', 'category')
+          .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+          .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+          .leftJoin('inventoryProduct.incomingProducts', 'incomingProduct')
+          .leftJoin('incomingProduct.shipment', 'incomingShipment')
+          .select([
+            'inventory.id AS "inventoryId"',
+            'inventory.name AS "inventoryName"',
+            'inventoryProduct.id AS "inventoryProductId"',
+            'product.id AS "productId"',
+            'product.name AS "productName"',
+            'COALESCE(SUM(outgoingProduct.quantity), 0) AS "soldQty"',
+            'COALESCE(SUM(incomingProduct.quantity), 0) AS "purchasedQty"',
+            `ROUND(
+              CASE 
+                WHEN COALESCE(SUM(incomingProduct.quantity), 0) = 0 
+                THEN 0
+                ELSE SUM(outgoingProduct.quantity)::numeric / NULLIF(SUM(incomingProduct.quantity), 0)
+              END, 2
+            ) AS "rotationRate"`
+          ])
+          .where('business.id = :businessId', { businessId })
+          .andWhere('salesOrder.id IS NOT NULL')
+          .andWhere(`salesOrder.date >= NOW() - INTERVAL '${days} days'`)
+          .andWhere(`incomingShipment.date >= NOW() - INTERVAL '${days} days'`)
+          .groupBy('inventory.id, inventory.name, inventoryProduct.id, product.id, product.name');
+      
+        if (categoryId) {
+          queryBuilder.andWhere('category.id = :categoryId', { categoryId });
+        }
+      
+        const allProducts = await queryBuilder.getRawMany();
+      
+        if (expand) return allProducts;
+      
+        const grouped = allProducts.reduce((acc, curr) => {
+          const inventoryId = curr.inventoryId;
+          if (!acc[inventoryId]) acc[inventoryId] = [];
+          acc[inventoryId].push(curr);
+          return acc;
+        }, {} as Record<string, typeof allProducts>);
+      
+        const result = Object.entries(grouped).map(([inventoryId, products]: [string, any[]]) => {
+          const sorted = products.sort((a, b) => b.rotationRate - a.rotationRate);
+          return {
+            inventoryId,
+            inventoryName: sorted[0]?.inventoryName ?? '',
+            topHighRotation: sorted.slice(0, 5),
+            topLowRotation: sorted.slice(-5),
+          };
+        });
+      
+        return result;
+    }
+
+    async getCompareInventoryPerformance(businessId: string, range: number, sortBy: 'salesCount' | 'lostCost' | 'turnoverRate' | 'efficiency') {
+        const queryBuilder = this.inventoryRepository
+            .createQueryBuilder('inventory')
+            .innerJoin('inventory.business', 'business')
+            .leftJoin('inventory.inventoryProducts', 'inventoryProduct')
+            .leftJoin('inventoryProduct.outgoingProducts', 'outgoingProduct')
+            .leftJoin('outgoingProduct.salesOrder', 'salesOrder')
+            .leftJoin('outgoingProduct.lostProduct', 'lostProduct')
+            .leftJoin('inventoryProduct.incomingProducts', 'incomingProduct')
+            .leftJoin('incomingProduct.shipment', 'incomingShipment')
+            .where('business.id = :businessId', { businessId })
+            .andWhere(
+                new Brackets(qb => {
+                    qb.orWhere(`salesOrder.date >= NOW() - INTERVAL'${range} days'`)
+                      .orWhere(`lostProduct.date >= NOW() - INTERVAL '${range} days'`)
+                      .orWhere(`incomingShipment.date >= NOW() - INTERVAL '${range} days'`);
+                })
+            )
+            .select([
+                'inventory.id AS "inventoryId"',
+                'inventory.name AS "inventoryName"',
+                `COALESCE(SUM(CASE WHEN salesOrder.id IS NOT NULL THEN "outgoingProduct".quantity ELSE 0 END), 0) AS "salesCount"`,
+                `COALESCE(SUM(CASE WHEN lostProduct.id IS NOT NULL THEN "outgoingProduct"."totalProductLoss" ELSE 0 END), 0) AS "lostCost"`,
+                `COALESCE(SUM("outgoingProduct".quantity), 0) AS "totalSold"`,
+                `COALESCE(SUM(incomingProduct.quantity), 0) AS "totalPurchased"`,
+                `ROUND(
+                    CASE 
+                    WHEN COALESCE(SUM(incomingProduct.quantity), 0) = 0 
+                    THEN 0 
+                    ELSE (SUM("outgoingProduct".quantity)::numeric / NULLIF(SUM(incomingProduct.quantity), 0)) * 100 
+                    END, 2
+                ) AS "efficiency"`
+            ])
+            .groupBy('inventory.id');
+
+        const rawData = await queryBuilder.getRawMany();
+
+        const processedData = rawData.map(row => {
+            const totalSold = Number(row.totalSold) || 0;
+            const totalPurchased = Number(row.totalPurchased) || 0;
+            const turnoverRate = totalPurchased === 0 ? 0 : Number(((totalSold / totalPurchased) * 100).toFixed(2));
+
+            return {
+                inventoryId: row.InventoryId,
+                inventoryName: row.inventoryName,
+                salesCount: Number(row.salesCount),
+                lostCost: Number(row.lostCost),
+                efficiency: Number(row.efficiency),
+                turnoverRate,
+            };
+        });
+
+        const sorted = processedData.sort((a, b) => b[sortBy] - a[sortBy]);
+
+        return {
+            orderedBy: sortBy,
+            results: sorted
+        };
     }
 }

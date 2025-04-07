@@ -25,7 +25,7 @@ export class BussinesService {
  
     const { roles } = user;
  
-    const businessCount = await this.businessRepository.count({ where: { user: { id: userId } } });
+    const businessCount = await this.businessRepository.count({ where: { user: { id: userId }, isActive: true } });
  
     let maxBusinesses = 0;
     if(roles.includes(UserRole.BASIC)) {

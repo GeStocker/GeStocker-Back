@@ -75,4 +75,40 @@ export class MetricsController {
   ) {
     return this.metricsService.getInventoryEficiency(businessId, days, categoryId, expand)
   }
+
+  @Get('lost-cost/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getLostProductsCost(
+    @Param('businessId') businessId: string,
+    @Query('category') categoryId?: string,
+    @Query('expand') expand?: boolean,
+  ) {
+    return this.metricsService.getLostProductsCost(businessId, categoryId, expand)
+  }
+
+  @Get('rotation/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getInventoryRotationRate(
+    @Param('businessId') businessId: string,
+    @Query('days') days: 30 | 60 | 90 = 30,
+    @Query('category') categoryId?: string,
+    @Query('expand') expand?: boolean,
+  ) {
+    return this.metricsService.getInventoryRotationRate(businessId, days, categoryId, expand)
+  }
+
+  @Get('comparison/:businessId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BUSINESS, UserRole.SUPERADMIN)
+  getCompareInventoryPerformance(
+    @Param('businessId') businessId: string,
+    @Query('range') range: 30 | 60 | 90 | 270 | 365 = 30,
+    @Query('cortBy') sortBy: 'salesCount' | 'lostCost' | 'turnoverRate' | 'efficiency' = 'salesCount',
+  ) {
+    return this.metricsService.getCompareInventoryPerformance(businessId, range, sortBy)
+  }
+
+
 }

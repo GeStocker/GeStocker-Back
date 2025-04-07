@@ -9,14 +9,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
-
-  @Get()
-  @Roles(UserRole.SUPERADMIN)
-  @UseGuards(AuthGuard, RolesGuard)
-  findAll() {
-    return this.usersService.findAll();
-  }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get(':id')
   @UseGuards(AuthGuard)
@@ -29,12 +22,5 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('file'))
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @UploadedFile() file?: Express.Multer.File) {
     return this.usersService.update(id, updateUserDto, file);
-  }
-
-  @Delete(':id')
-  @Roles(UserRole.SUPERADMIN)
-  @UseGuards(AuthGuard, RolesGuard)
-  remove(@Param('id') id: string) {
-    return this.usersService.desactiveUser(id);
   }
 }

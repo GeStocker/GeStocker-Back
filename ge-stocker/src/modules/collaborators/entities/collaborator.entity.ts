@@ -32,6 +32,12 @@ export class Collaborator {
   @Column({default: true})
   isActive: boolean;
 
+  @Column({ type: 'simple-array', default: [UserRole.COLLABORATOR] })
+  roles: UserRole[]
+  
+  @Column({default: false})
+  isAdmin: boolean;
+
   @ManyToOne(() => Inventory, (inventory) => inventory.collaborators)
   @JoinColumn({ name: 'inventory_id' })
   inventory: Inventory;
