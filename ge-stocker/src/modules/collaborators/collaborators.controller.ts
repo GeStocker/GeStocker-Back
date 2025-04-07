@@ -24,7 +24,7 @@ export class CollaboratorsController {
     UserRole.PROFESIONAL ||
     UserRole.BUSINESS ||
     UserRole.ADMIN ||
-    UserRole.SUPERADMIN,
+    UserRole.SUPERADMIN
   )
   @UseGuards(AuthGuard, RolesGuard)
   create(@Body() createCollaboratorDto: CreateCollaboratorDto) {
