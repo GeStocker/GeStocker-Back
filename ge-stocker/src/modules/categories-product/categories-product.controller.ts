@@ -38,9 +38,4 @@ export class CategoriesProductController {
     @Body() updateCategoriesProductDto: UpdateCategoriesProductDto) {
     return this.categoriesProductService.updateCategory(id, businessId, updateCategoriesProductDto);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesProductService.remove(+id);
-  }
 }
