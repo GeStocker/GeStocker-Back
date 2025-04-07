@@ -66,7 +66,7 @@ export class CollaboratorsService {
 
     const collaboratorPayload = {
       username: collaborator.username,
-      sub: collaborator.id,
+      userId: collaborator.id,
       inventoryId: collaborator.inventory.id,
       roles: collaborator.isAdmin
         ? [UserRole.BUSINESS_ADMIN]
