@@ -24,7 +24,6 @@ export class StripeService {
         this.stripe = new Stripe((stripeSecretKey), { apiVersion: '2025-02-24.acacia' });
     }
 
-    // stripe.service.ts
     async createCheckoutSession(priceId: string, userId: string) {
         if (!priceId?.startsWith('price_')) {
             throw new BadRequestException('ID de precio inválido');

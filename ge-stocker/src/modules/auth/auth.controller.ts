@@ -4,6 +4,7 @@ import { GoogleAuthGuard } from "./authGoogle.guard";
 import { CreateAuthDto, LoginAuthDto } from "./dto/create-auth.dto";
 import { ConfigService } from "@nestjs/config";
 import { AuthService } from "./auth.service";
+import { PasswordResetGuard } from "./password-reset.guard";
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +16,28 @@ export class AuthController {
   @Post('/signup')
   async register(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.registerUser(createAuthDto);
+  }
+
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    await this.authService.forgotPassword(email);
+    return { message: 'Correo enviado con codigo de verificacion' };
+  }
+
+  @Post('verify-code')
+  async verifyCode(@Body() body: { email: string; code: string }) {
+    const token = await this.authService.verifyCode(body.email, body.code);
+    return { token };
+  }
+
+  @Post('reset-password')
+  @UseGuards(PasswordResetGuard)
+  async resetPassword(
+    @Body('newPassword') newPassword: string,
+    @Req() req,
+  ) {
+    await this.authService.resetPassword(req.user.sub, newPassword);
+    return { message: 'Contraseña actualizada' };
   }
 
   @Get('google')

@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
   Inject,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateAuthDto, LoginAuthDto, SubscriptionPlan } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +17,8 @@ import { PurchasesService } from '../payments/payments.service';
 import { ConfigService } from '@nestjs/config';
 import { sendEmail } from 'src/emails/config/mailer';
 import { PaymentMethod, PaymentStatus, PurchaseLog } from '../payments/entities/payment.entity';
+import { PasswordResetToken } from '../verification-codes/entities/verification-code.entity';
+import { VerificationCodesService } from '../verification-codes/verification-codes.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +33,9 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRepository(PurchaseLog)
     private readonly purchaseLogRepository: Repository<PurchaseLog>,
+    @InjectRepository(PasswordResetToken)
+    private readonly passwordResetTokenRepo: Repository<PasswordResetToken>,
+    private readonly emailService: VerificationCodesService,
   ) { }
 
   async registerUser(
@@ -223,7 +229,7 @@ export class AuthService {
         email,
         img: picture,
         roles: [UserRole.BASIC],
-        isActive: false, // Se actualizará si es trial
+        isActive: false,
       });
       isNewUser = true;
     
@@ -233,7 +239,7 @@ export class AuthService {
         registerUrl: `${this.configService.get('FRONTEND_URL')}/login`,
       };
     }
-    // 🧪 Si eligió el plan BASIC, activar prueba gratuita
+    
     const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
     if (isBasicTrial) {
       const trialExpiration = new Date();
@@ -249,7 +255,6 @@ export class AuthService {
   
       await this.purchaseLogRepository.save(trialPurchase);
   
-      // ⚡ Activar usuario para evitar lógica de Stripe
       user.isActive = true;
       await this.userRepository.save(user);
   
@@ -270,7 +275,6 @@ export class AuthService {
     }
     const token = this.generateJwtToken(user);
     if (!user.isActive) {
-      console.log(':círculo_rojo: Usuario no activo, redirigiendo a pago en Stripe');
       const priceId = this.getStripePriceId(selectedPlan);
       const session = await this.stripeService.createCheckoutSession(priceId, user.id);
       const pendingPurchase = await this.purchasesService.createPendingPurchase(
@@ -286,7 +290,7 @@ export class AuthService {
         checkoutUrl: checkoutUrl ?? undefined,
       };
     }
-    console.log(':marca_de_verificación_blanca: Usuario activo, iniciando sesión normalmente');
+    
     return {
       success: 'Inicio de sesión exitoso',
       token,
@@ -322,5 +326,60 @@ export class AuthService {
 
   async validateUser(payload: any): Promise<User | null> {
     return this.userRepository.findOneBy({ id: payload.id });
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) return; // No revelar si el email existe
+
+    // Eliminar códigos previos
+    await this.passwordResetTokenRepo.delete({ user: { id: user.id } });
+
+    const code = this.generate6DigitCode();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+    await this.passwordResetTokenRepo.save({
+      user,
+      code,
+      expiresAt,
+    });
+
+    await this.emailService.sendPasswordResetCode(email, code);
+  }
+
+  private generate6DigitCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  async verifyCode(email: string, code: string): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const resetToken = await this.passwordResetTokenRepo.findOne({
+      where: { user: { id: user.id }, code, used: false },
+      order: { expiresAt: 'DESC' },
+    });
+
+    if (!resetToken || resetToken.expiresAt < new Date()) {
+      throw new BadRequestException('Código inválido o expirado');
+    }
+
+    resetToken.used = true;
+    await this.passwordResetTokenRepo.save(resetToken);
+
+    // Generar JWT para resetear contraseña
+    return this.jwtService.sign(
+      { sub: user.id, email: user.email, tokenType: 'passwordReset' },
+      { expiresIn: '5m' },
+    );
+  }
+
+  async resetPassword(userId: string, newPassword: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
   }
 }

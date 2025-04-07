@@ -33,7 +33,6 @@ export class CollaboratorsController {
   }
 
   @Post('/login')
-  @UseGuards(AuthGuard)
   login(@Body() credentials: LoginCollaboratorDto) {
     return this.collaboratorsService.loginCollaborator(credentials);
   }
