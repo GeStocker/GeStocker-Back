@@ -51,7 +51,7 @@ export class SuperAdminController {
     return this.superAdminService.banUser(userId, reason);
   }
 
-  @Patch('users/ban/:userId')
+  @Patch('users/unban/:userId')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
   unbanUser(@Param('userId') userId: string) {
