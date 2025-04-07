@@ -65,10 +65,10 @@ export class CollaboratorsController {
 
   @Delete(':id')
   @Roles(
-    UserRole.BASIC ||
-    UserRole.PROFESIONAL ||
-    UserRole.BUSINESS ||
-    UserRole.ADMIN ||
+    UserRole.BASIC,
+    UserRole.PROFESIONAL,
+    UserRole.BUSINESS,
+    UserRole.ADMIN,
     UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)
