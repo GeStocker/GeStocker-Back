@@ -22,7 +22,7 @@ export class CreateCollaboratorDto {
 export class LoginCollaboratorDto {
       @IsString()
       @IsNotEmpty()
-      username: string;
+      email: string;
 
       @IsNotEmpty()
       password: string;

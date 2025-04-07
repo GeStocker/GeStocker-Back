@@ -45,9 +45,9 @@ export class CollaboratorsService {
   }
 
   async loginCollaborator(credentials: LoginCollaboratorDto) {
-    const { username, password } = credentials;
+    const { email, password } = credentials;
     const collaborator = await this.collaboratorRepository.findOne({
-      where: { username },
+      where: { email },
       relations: ['inventory'],
     });
 
