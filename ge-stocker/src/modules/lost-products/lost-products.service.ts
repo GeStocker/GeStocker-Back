@@ -84,20 +84,4 @@ export class LostProductsService {
 
     return lostProducts;
   }
-
-  findAll() {
-    return `This action returns all lostProducts`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} lostProduct`;
-  }
-
-  update(id: number, updateLostProductDto: UpdateLostProductDto) {
-    return `This action updates a #${id} lostProduct`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} lostProduct`;
-  }
 }
