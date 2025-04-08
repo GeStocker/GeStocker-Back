@@ -78,8 +78,4 @@ export class CategoriesProductService {
 
     return await this.categoriesProductRepository.save(category);
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} categoriesProduct`;
-  }
 }

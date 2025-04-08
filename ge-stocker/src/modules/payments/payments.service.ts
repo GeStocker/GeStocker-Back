@@ -7,6 +7,7 @@ import { User } from '../users/entities/user.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { ConfigService } from '@nestjs/config';
 import { StripeService } from './stripe.service';
+import { sendEmail } from 'src/emails/config/mailer';
 
 @Injectable()
 export class PurchasesService {
@@ -61,6 +62,21 @@ export class PurchasesService {
 
         purchase.status = PaymentStatus.COMPLETED;
         purchase.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        await sendEmail(
+            user.email,
+            "Bienvenido a GeStocker - Gracias por unirte a nosotros",
+            "welcome",
+            {
+                name: user.name,
+                plan: role,
+                expirationDate: purchase.expirationDate.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                }),
+            }
+        );
 
         await this.usersRepository.save(user);
         return this.purchaseLogRepository.save(purchase);
@@ -138,14 +154,10 @@ export class PurchasesService {
             immediate
         );
 
-
-
-        // 3. Actualizar estado
         user.isActive = false;
         purchase.status = PaymentStatus.CANCELED;
         purchase.expirationDate = new Date(canceledSubscription.current_period_end * 1000);
 
-        // 4. Si es inmediato, desactivar usuario
         if (immediate) {
             const user = purchase.user;
             user.isActive = false;

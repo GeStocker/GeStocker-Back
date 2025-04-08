@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { ArrayMinSize, IsArray, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from "class-validator"
 
@@ -6,6 +7,10 @@ export class CreateIncomingShipmentDto {
     @IsDate()
     date?: Date;
 
+    @ApiProperty({
+        example: [{productId: '', quantity: 50, purchasePrice: 200, sellingPrice: 250}, {productId: '', quantity: 100, purchasePrice: 325, sellingPrice: 380}],
+        description: 'Array de productos que entran a un local',
+    })
     @IsArray()
     @ArrayMinSize(1)
     @ValidateNested({ each: true })

@@ -9,6 +9,7 @@ import {
 import { Business } from 'src/modules/bussines/entities/bussines.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { PurchaseLog } from 'src/modules/payments/entities/payment.entity';
+import { PasswordResetToken } from 'src/modules/verification-codes/entities/verification-code.entity';
 
 @Entity({
   name: 'users',
@@ -88,6 +89,9 @@ export class User {
   @OneToMany(() => Business, (business) => business.user)
   @JoinColumn({ name: 'buisiness_id' })
   businesses: Business[];
+
+  @OneToMany(() => PasswordResetToken, (prt) => prt.user)
+  passwordResetTokens: PasswordResetToken[];
 
   @OneToMany(() => PurchaseLog, (payment) => payment.user)
   payments: PurchaseLog[];
