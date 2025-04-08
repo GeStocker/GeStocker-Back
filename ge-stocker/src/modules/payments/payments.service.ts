@@ -146,7 +146,7 @@ async completePurchase(sessionId: string) {
     async cancelSubscription(subscriptionId: string, immediate: boolean = false) {
 
         const purchase = await this.purchaseLogRepository.findOne({
-            where: { stripeSubscriptionId: subscriptionId, status: PaymentStatus.COMPLETED },
+            where: { id: subscriptionId, status: PaymentStatus.COMPLETED },
             relations: ['user']
         });
 
