@@ -21,10 +21,10 @@ export class CollaboratorsController {
 
   @Post('/signup')
   @Roles(
-    UserRole.BASIC ||
-    UserRole.PROFESIONAL ||
-    UserRole.BUSINESS ||
-    UserRole.ADMIN ||
+    UserRole.BASIC,
+    UserRole.PROFESIONAL,
+    UserRole.BUSINESS,
+    UserRole.ADMIN,
     UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)
