@@ -16,7 +16,7 @@ export class ExcelImportInventoryService {
     @InjectRepository(Inventory)
     private readonly inventoryRepository: Repository<Inventory>,
   ) {}
-
+  
   async parseExcel(fileBuffer: Buffer): Promise<(ImportInventoryProductDto & { purchasePrice: number })[]> {
     const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];

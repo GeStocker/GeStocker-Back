@@ -33,7 +33,8 @@ export class CollaboratorsController {
   }
 
   @Post('/login')
-  login(@Body() credentials: LoginCollaboratorDto) {
+  login(@Body() credentials: LoginCollaboratorDto,
+@Body('businessId') businessId: string) {
     return this.collaboratorsService.loginCollaborator(credentials);
   }
 

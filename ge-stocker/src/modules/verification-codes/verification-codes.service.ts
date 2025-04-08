@@ -7,7 +7,7 @@ export class VerificationCodesService {
     await sendEmail(
       email,
       'Código de recuperación de contraseña',
-      `<p>Tu código de recuperación de contraseña es: <strong>${code}</strong></p>`,
+      "resetPassword",
       {code: code, email: email},
     );
   }
