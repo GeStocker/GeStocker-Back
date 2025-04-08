@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateCollaboratorDto, LoginCollaboratorDto } from './dto/create-collaborator.dto';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -82,6 +82,10 @@ export class CollaboratorsService {
   }
 
   async findBusinessCollaborators(businessId: string) {
+    if (!businessId) {
+      throw new BadRequestException("El ID del negocio es requerido.")
+    }
+
     return await this.collaboratorRepository.find({
       where: { inventory: { business: { id: businessId } } },
       relations: ['inventory'],

@@ -44,7 +44,7 @@ export class BussinesController {
 
   @Put(':businessId')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
+  @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN, UserRole.COLLABORATOR)
   updateBusiness(
     @Param('id') businessId: string,
     @Body() updateBussineDto: UpdateBusinessDto,
