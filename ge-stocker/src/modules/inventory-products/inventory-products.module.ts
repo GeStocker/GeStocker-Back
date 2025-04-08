@@ -13,11 +13,13 @@ import { ProductsModule } from '../products/products.module';
 import { IncomingShipmentService } from '../incoming-shipment/incoming-shipment.service';
 import { IncomingShipmentController } from '../incoming-shipment/incoming-shipment.controller';
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
+import { IncomingShipmentModule } from '../incoming-shipment/incoming-shipment.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User, IncomingShipment]),
-ProductsModule],
+ProductsModule,
+IncomingShipmentModule],
   controllers: [InventoryProductsController, ExcelInventoryImportController, IncomingShipmentController],
-  providers: [InventoryProductsService, ExcelImportInventoryService, IncomingShipmentService], 
+  providers: [InventoryProductsService, ExcelImportInventoryService], 
 })
 export class InventoryProductsModule {}
