@@ -10,11 +10,14 @@ import { User } from '../users/entities/user.entity';
 import { ExcelInventoryImportController } from './import-excel-inventoryProducts.controller';
 import { ExcelImportInventoryService } from './import-excel-inventoryProducts.service';
 import { ProductsModule } from '../products/products.module';
+import { IncomingShipmentService } from '../incoming-shipment/incoming-shipment.service';
+import { IncomingShipmentController } from '../incoming-shipment/incoming-shipment.controller';
+import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User]),
+  imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User, IncomingShipment]),
 ProductsModule],
-  controllers: [InventoryProductsController, ExcelInventoryImportController],
-  providers: [InventoryProductsService, ExcelImportInventoryService], 
+  controllers: [InventoryProductsController, ExcelInventoryImportController, IncomingShipmentController],
+  providers: [InventoryProductsService, ExcelImportInventoryService, IncomingShipmentService], 
 })
 export class InventoryProductsModule {}

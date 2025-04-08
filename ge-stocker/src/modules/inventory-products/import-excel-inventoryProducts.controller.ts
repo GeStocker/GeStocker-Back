@@ -7,6 +7,7 @@ import {
   } from '@nestjs/common';
   import { FileInterceptor } from '@nestjs/platform-express';
   import { ExcelImportInventoryService } from './import-excel-inventoryProducts.service';
+
   
   @Controller('excel-inventory-import')
   export class ExcelInventoryImportController {
@@ -20,11 +21,13 @@ import {
       @UploadedFile() file: Express.Multer.File,
       @Body('userId') userId: string,
       @Body('businessId') businessId: string,
+      @Body('inventoryId') inventoryId: string,
     ) {
       return this.excelImportInventoryService.importInventoryProducts(
         file.buffer,
         userId,
         businessId,
+        inventoryId,
       );
     }
   }

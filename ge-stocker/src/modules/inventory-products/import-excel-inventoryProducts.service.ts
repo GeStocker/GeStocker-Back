@@ -1,22 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import * as XLSX from 'xlsx';
 import { ProductsService } from '../products/products.service';
-import { InventoryProductsService } from '../inventory-products/inventory-products.service';
-import { ImportInventoryProductDto } from './dto/create-import-InventoryProductDTO';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Inventory } from '../inventory/entities/inventory.entity';
+import { ImportInventoryProductDto } from './dto/create-import-InventoryProductDTO';
+import { IncomingShipmentService } from '../incoming-shipment/incoming-shipment.service';
+import { IncomingProductDto } from '../incoming-shipment/dto/create-incoming-shipment.dto';
 
 @Injectable()
 export class ExcelImportInventoryService {
   constructor(
     private readonly productsService: ProductsService,
-    private readonly inventoryProductsService: InventoryProductsService,
+    private readonly incomingShipmentService: IncomingShipmentService,
     @InjectRepository(Inventory)
     private readonly inventoryRepository: Repository<Inventory>,
   ) {}
 
-  async parseExcel(fileBuffer: Buffer): Promise<ImportInventoryProductDto[]> {
+  async parseExcel(fileBuffer: Buffer): Promise<(ImportInventoryProductDto & { purchasePrice: number })[]> {
     const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rawData = XLSX.utils.sheet_to_json(sheet);
@@ -27,6 +28,7 @@ export class ExcelImportInventoryService {
       category: row['Category'],
       stock: Number(row['Stock']),
       price: Number(row['Price']),
+      purchasePrice: Number(row['Purchase Price']),
     }));
   }
 
@@ -34,11 +36,12 @@ export class ExcelImportInventoryService {
     fileBuffer: Buffer,
     userId: string,
     businessId: string,
+    inventoryId: string,
   ): Promise<{ message: string }> {
     const parsedProducts = await this.parseExcel(fileBuffer);
 
     const inventory = await this.inventoryRepository.findOne({
-      where: { business: { id: businessId } },
+      where: { id: inventoryId, business: { id: businessId } },
     });
 
     if (!inventory) {
@@ -46,36 +49,44 @@ export class ExcelImportInventoryService {
     }
 
     let importedCount = 0;
+    const products: IncomingProductDto[] = [];
 
     for (const productData of parsedProducts) {
-      // Verifica si el producto ya existe por nombre
-      const existing = await this.productsService.findByName(productData.name);
-      if (existing) continue;
+      let product = await this.productsService.findByName(productData.name);
 
-      // 1. Crear el producto
-      const product = await this.productsService.createProduct(
-        {
-          name: productData.name,
-          description: productData.description,
-          category: productData.category,
-        },
-        userId,
-        businessId,
-      );
+      if (!product) {
+        product = await this.productsService.createProduct(
+          {
+            name: productData.name,
+            description: productData.description,
+            category: productData.category,
+          },
+          userId,
+          businessId,
+        );
+      }
 
-      // 2. Crear entrada en inventario
-      await this.inventoryProductsService.createInventoryProductFromImport({
+      products.push({
         productId: product.id,
-        inventoryId: inventory.id,
-        stock: productData.stock,
-        price: productData.price,
+        quantity: productData.stock,
+        purchasePrice: productData.purchasePrice,
+        sellingPrice: productData.price,
       });
 
       importedCount++;
     }
 
+    await this.incomingShipmentService.registerIncomingShipment(
+      {
+        products,
+        date: new Date(),
+      },
+      businessId,
+      inventoryId,
+    );
+
     return {
-      message: `${importedCount} productos importados al inventario correctamente.`,
+      message: `${importedCount} productos importados con ingreso registrado correctamente.`,
     };
   }
 }
