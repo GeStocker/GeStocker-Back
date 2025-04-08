@@ -124,19 +124,14 @@ export class SalesOrderService {
     }
   }
 
-  findAll() {
-    return `This action returns all salesOrder`;
-  }
+  async getAllSalesOrders(inventoryId: string) {
+    const inventory = await this.inventoryRepository.findOne({ where: { id: inventoryId } });
 
-  findOne(id: number) {
-    return `This action returns a #${id} salesOrder`;
-  }
+    if(!inventory) throw new NotFoundException('Inventario no encontrado');
 
-  update(id: number, updateSalesOrderDto: UpdateSalesOrderDto) {
-    return `This action updates a #${id} salesOrder`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} salesOrder`;
+    return await this.salesOrderRepository.find({
+      where: { inventory: { id: inventoryId } },
+      relations: ['outgoingProducts']
+    })
   }
 }

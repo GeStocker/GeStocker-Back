@@ -20,23 +20,8 @@ export class SalesOrderController {
     return this.salesOrderService.createSalesOrder(createSalesOrderDto, inventoryId, userId);
   }
 
-  @Get()
-  findAll() {
-    return this.salesOrderService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salesOrderService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSalesOrderDto: UpdateSalesOrderDto) {
-    return this.salesOrderService.update(+id, updateSalesOrderDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.salesOrderService.remove(+id);
+  @Get(':inventoryId')
+  getAllSalesOrders(@Param('inventoryId') inventoryId: string) {
+    return this.salesOrderService.getAllSalesOrders(inventoryId);
   }
 }
