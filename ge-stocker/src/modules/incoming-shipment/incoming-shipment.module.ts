@@ -13,5 +13,6 @@ import { User } from '../users/entities/user.entity';
   imports: [TypeOrmModule.forFeature([IncomingShipment, IncomingProduct, Product, Inventory, InventoryProduct, User])],
   controllers: [IncomingShipmentController],
   providers: [IncomingShipmentService],
+  exports: [IncomingShipmentService],
 })
 export class IncomingShipmentModule {}

@@ -57,13 +57,11 @@ export class PurchasesController {
   @Post('subscription/cancel')
   @UseGuards(AuthGuard)
   async cancelSubscription(
-    @Body('subscriptionId') subscriptionId: string,
-    @Body('immediate') immediate: boolean = false,
+    @Body('id') subscriptionId: string,
     @Request() req
   ) {
     return this.purchasesService.cancelSubscription(
-      subscriptionId,
-      immediate
+      subscriptionId
     );
   }
 

@@ -39,48 +39,58 @@ export class PurchasesService {
         return this.purchaseLogRepository.save(purchase);
     }
 
-    async completePurchase(sessionId: string) {
-        const purchase = await this.purchaseLogRepository.findOne({
-            where: { stripeSessionId: sessionId, status: PaymentStatus.PENDING },
-            relations: ['user'],
-        });
+    // src/payments/purchases.service.ts
 
-        if (!purchase) throw new NotFoundException('Compra no encontrada');
+async completePurchase(sessionId: string) {
+    const purchase = await this.purchaseLogRepository.findOne({
+        where: { stripeSessionId: sessionId, status: PaymentStatus.PENDING },
+        relations: ['user'],
+    });
 
-        const session = await this.stripeService.retrieveCheckoutSession(sessionId);
+    if (!purchase) throw new NotFoundException('Compra no encontrada');
 
-        const priceId = session.line_items?.data[0]?.price?.id;
-        if (!priceId) {
-            throw new BadRequestException('No se pudo determinar el plan adquirido');
-        }
+    const session = await this.stripeService.retrieveCheckoutSession(sessionId);
 
-        const role = this.getRoleFromPriceId(priceId);
-
-        const user = purchase.user;
-        user.roles = [role];
-        user.isActive = true;
-
-        purchase.status = PaymentStatus.COMPLETED;
-        purchase.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-        await sendEmail(
-            user.email,
-            "Bienvenido a GeStocker - Gracias por unirte a nosotros",
-            "welcome",
-            {
-                name: user.name,
-                plan: role,
-                expirationDate: purchase.expirationDate.toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                }),
-            }
-        );
-
-        await this.usersRepository.save(user);
-        return this.purchaseLogRepository.save(purchase);
+    // Obtener el ID de la suscripción desde la sesión de Stripe
+    const subscriptionId = session.subscription as string; // Asegúrate de que session.subscription es el ID correcto
+    if (!subscriptionId) {
+        throw new BadRequestException('No se pudo obtener el ID de la suscripción');
     }
+
+    const priceId = session.line_items?.data[0]?.price?.id;
+    if (!priceId) {
+        throw new BadRequestException('No se pudo determinar el plan adquirido');
+    }
+
+    const role = this.getRoleFromPriceId(priceId);
+
+    const user = purchase.user;
+    user.roles = [role];
+    user.isActive = true;
+
+    // Asignar el subscriptionId al purchase
+    purchase.stripeSubscriptionId = subscriptionId;
+    purchase.status = PaymentStatus.COMPLETED;
+    purchase.expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    await sendEmail(
+        user.email,
+        "Bienvenido a GeStocker - Gracias por unirte a nosotros",
+        "welcome",
+        {
+            name: user.name,
+            plan: role,
+            expirationDate: purchase.expirationDate.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }),
+        }
+    );
+
+    await this.usersRepository.save(user);
+    return this.purchaseLogRepository.save(purchase);
+}
 
     private getRoleFromPriceId(priceId: string): UserRole {
         const priceMap = {
@@ -133,38 +143,25 @@ export class PurchasesService {
         return this.purchaseLogRepository.save(purchase);
     }
 
-    async cancelSubscription(subscriptionId: string, immediate: boolean = false) {
-
+    async cancelSubscription(id: string) {  // Cambia nombre del parámetro
         const purchase = await this.purchaseLogRepository.findOne({
-            where: { stripeSubscriptionId: subscriptionId, status: PaymentStatus.COMPLETED },
+            where: { 
+                id,  // Buscar por ID de tu entidad, no de Stripe
+                status: PaymentStatus.COMPLETED 
+            },
             relations: ['user']
         });
-
+    
         if (!purchase) {
             throw new NotFoundException('Suscripción no encontrada');
         }
-
-        const user = await this.usersRepository.findOne({ where: { id: purchase.user.id } });
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
-        }
-
-        const canceledSubscription = await this.stripeService.cancelSubscription(
-            subscriptionId,
-            immediate
-        );
-
+    
+        const user = purchase.user;
         user.isActive = false;
         purchase.status = PaymentStatus.CANCELED;
-        purchase.expirationDate = new Date(canceledSubscription.current_period_end * 1000);
-
-        if (immediate) {
-            const user = purchase.user;
-            user.isActive = false;
-            user.roles = [UserRole.BASIC];
-            await this.usersRepository.save(user);
-        }
-
+        purchase.expirationDate = new Date();
+    
+        await this.usersRepository.save(user);
         return this.purchaseLogRepository.save(purchase);
     }
 

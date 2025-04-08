@@ -38,7 +38,8 @@ export class Collaborator {
   @Column({default: false})
   isAdmin: boolean;
 
+
   @ManyToOne(() => Inventory, (inventory) => inventory.collaborators)
-  @JoinColumn({ name: 'inventory_id' })
+  @JoinColumn({ name: 'inventory_id'})
   inventory: Inventory;
 }

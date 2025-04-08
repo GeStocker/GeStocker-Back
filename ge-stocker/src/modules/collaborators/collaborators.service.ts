@@ -7,6 +7,8 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
+import { sendEmail } from 'src/emails/config/mailer';
+import { Business } from '../bussines/entities/bussines.entity';
 @Injectable()
 export class CollaboratorsService {
   constructor(
@@ -15,6 +17,8 @@ export class CollaboratorsService {
     @InjectRepository(Inventory)
     private readonly inventoryRepository: Repository<Inventory>,
     private readonly JwtService: JwtService,
+    @InjectRepository(Business)
+    private readonly businessRepository: Repository<Business>,
   ) { }
   async create(collaborator: CreateCollaboratorDto) {
     const { email, username, password, inventoryId } = collaborator;
@@ -28,6 +32,11 @@ export class CollaboratorsService {
     const inventory = await this.inventoryRepository.findOne({
       where: { id: inventoryId },
     });
+    if (!inventory) throw new NotFoundException('Inventario no encontrado');
+
+    const business = await this.businessRepository.findOne({
+      where: { id: inventory.business?.id },
+    });
 
     if (!inventory) throw new NotFoundException('Inventario no encontrado');
 
@@ -37,9 +46,11 @@ export class CollaboratorsService {
       email,
       username,
       password: hashedPassword,
-      inventory
+      inventory,
+      business
     });
 
+    await sendEmail(newCollaborator.email, 'Bienvenido a Ge-Stocker', 'colaborattor', {username: newCollaborator.username, password: collaborator.password});
     const { password: _, ...collaboratorWithoutPassword } = newCollaborator;
     return collaboratorWithoutPassword;
   }
@@ -53,6 +64,14 @@ export class CollaboratorsService {
 
     if (!collaborator) {
       throw new UnauthorizedException('Usuario no encontrado');
+    };
+
+    const business = await this.businessRepository.findOne({
+      where: { inventories: { id: collaborator.inventory.id }}
+    })
+
+    if (!business) {
+      throw new NotFoundException('Negocio no encontrado');
     };
 
     const isPasswordValid = await bcrypt.compare(
@@ -71,6 +90,7 @@ export class CollaboratorsService {
       roles: collaborator.isAdmin
         ? [UserRole.BUSINESS_ADMIN]
         : [UserRole.COLLABORATOR],
+      businessId: business.id,
     };
 
     const token = this.JwtService.sign(collaboratorPayload, { expiresIn: '12h' });
