@@ -24,4 +24,20 @@ export class SalesOrderController {
   getAllSalesOrders(@Param('inventoryId') inventoryId: string) {
     return this.salesOrderService.getAllSalesOrders(inventoryId);
   }
+
+  @Get('byId/:inventoryId/:salesOrderId')
+  getSalesOrderById(
+    @Param('inventoryId') inventoryId: string,
+    @Param('salesOrderId') salesOrderId: string
+  ) {
+    return this.salesOrderService.getSalesOrderById(inventoryId, salesOrderId)
+  }
+
+  @Patch(':salesOrderId')
+  updateSalesOrder(
+    @Param('salesOrderId') salesOrderId: string,
+    @Body() updateSalesOrderDto: UpdateSalesOrderDto
+  ) {
+    return this.salesOrderService.updateSalesOrder(salesOrderId, updateSalesOrderDto)
+  }
 }
