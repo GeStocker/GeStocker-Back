@@ -105,7 +105,7 @@ export class MetricsController {
   getCompareInventoryPerformance(
     @Param('businessId') businessId: string,
     @Query('range') range: 30 | 60 | 90 | 270 | 365 = 30,
-    @Query('cortBy') sortBy: 'salesCount' | 'lostCost' | 'turnoverRate' | 'efficiency' = 'salesCount',
+    @Query('sortBy') sortBy: 'salesCount' | 'lostCost' | 'turnoverRate' | 'efficiency' = 'salesCount',
   ) {
     return this.metricsService.getCompareInventoryPerformance(businessId, range, sortBy)
   }
