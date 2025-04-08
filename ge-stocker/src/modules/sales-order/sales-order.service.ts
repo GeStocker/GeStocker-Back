@@ -134,4 +134,46 @@ export class SalesOrderService {
       relations: ['outgoingProducts']
     })
   }
+
+  async getSalesOrderById(inventoryId: string, salesOrderId: string) {
+    const inventory = await this.inventoryRepository.findOne({ where: { id: inventoryId } });
+    if(!inventory) throw new NotFoundException('Inventario no encontrado');
+
+    return await this.salesOrderRepository.findOne({
+      where: { id: salesOrderId, inventory: { id: inventoryId } },
+      relations: ['outgoingProducts']
+    })
+  }
+
+  async updateSalesOrder(id: string, updateSalesOrderDto: UpdateSalesOrderDto) {
+    const salesOrder = await this.salesOrderRepository.findOne({
+      where: { id },
+    });
+  
+    if (!salesOrder) {
+      throw new NotFoundException('Orden de venta no encontrada');
+    }
+  
+    const { description, discount, customer } = updateSalesOrderDto;
+  
+    if (description !== undefined) salesOrder.description = description;
+    if (discount !== undefined) {
+      salesOrder.discount = discount;
+  
+      // Actualizar el total si hay productos ya asociados
+      const outgoingProducts = await this.outgoingProductRepository.find({
+        where: { salesOrder: { id } },
+      });
+  
+      const totalWithoutDiscount = outgoingProducts.reduce(
+        (acc, prod) => acc + (prod.totalSalePrice ?? 0),
+        0,
+      );
+  
+      salesOrder.totalPrice = totalWithoutDiscount - discount;
+    }
+    if (customer !== undefined) salesOrder.customer = customer;
+  
+    return this.salesOrderRepository.save(salesOrder);
+  }
 }

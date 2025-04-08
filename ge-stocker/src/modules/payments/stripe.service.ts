@@ -49,7 +49,7 @@ export class StripeService {
 
     async retrieveCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session> {
         return this.stripe.checkout.sessions.retrieve(sessionId, {
-            expand: ['line_items.data.price.product']
+            expand: ['line_items.data.price.product', 'subscription'] // Expandir la suscripción
         });
     }
 

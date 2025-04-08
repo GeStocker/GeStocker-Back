@@ -15,5 +15,6 @@ import { ExcelImportService } from './excel-import.service';
   imports: [TypeOrmModule.forFeature([Product,Business, CategoriesProduct, User])],
   controllers: [ProductsController, ExcelImportController],
   providers: [ProductsService, FilesService, CloudinaryRepository, ExcelImportService],
+  exports: [ProductsService],
 })
 export class ProductsModule {}
