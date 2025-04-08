@@ -45,9 +45,9 @@ export class CollaboratorsService {
   }
 
   async loginCollaborator(credentials: LoginCollaboratorDto) {
-    const { username, password } = credentials;
+    const { email, password } = credentials;
     const collaborator = await this.collaboratorRepository.findOne({
-      where: { username },
+      where: { email },
       relations: ['inventory'],
     });
 
@@ -66,7 +66,7 @@ export class CollaboratorsService {
 
     const collaboratorPayload = {
       username: collaborator.username,
-      sub: collaborator.id,
+      id: collaborator.id,
       inventoryId: collaborator.inventory.id,
       roles: collaborator.isAdmin
         ? [UserRole.BUSINESS_ADMIN]

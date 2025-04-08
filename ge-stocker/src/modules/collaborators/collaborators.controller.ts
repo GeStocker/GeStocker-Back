@@ -33,7 +33,6 @@ export class CollaboratorsController {
   }
 
   @Post('/login')
-  @UseGuards(AuthGuard)
   login(@Body() credentials: LoginCollaboratorDto) {
     return this.collaboratorsService.loginCollaborator(credentials);
   }
@@ -53,10 +52,10 @@ export class CollaboratorsController {
 
   @Get(':id')
   @Roles(
-    UserRole.BASIC ||
-    UserRole.PROFESIONAL ||
-    UserRole.BUSINESS ||
-    UserRole.ADMIN ||
+    UserRole.BASIC,
+    UserRole.PROFESIONAL,
+    UserRole.BUSINESS,
+    UserRole.ADMIN,
     UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)
@@ -66,10 +65,10 @@ export class CollaboratorsController {
 
   @Delete(':id')
   @Roles(
-    UserRole.BASIC ||
-    UserRole.PROFESIONAL ||
-    UserRole.BUSINESS ||
-    UserRole.ADMIN ||
+    UserRole.BASIC,
+    UserRole.PROFESIONAL,
+    UserRole.BUSINESS,
+    UserRole.ADMIN,
     UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)

@@ -17,24 +17,4 @@ export class LostProductsController {
   ) {
     return this.lostProductsService.registerLostProducts(createLostProductDto, businessId, inventoryId);
   }
-
-  @Get()
-  findAll() {
-    return this.lostProductsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.lostProductsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLostProductDto: UpdateLostProductDto) {
-    return this.lostProductsService.update(+id, updateLostProductDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.lostProductsService.remove(+id);
-  }
 }
