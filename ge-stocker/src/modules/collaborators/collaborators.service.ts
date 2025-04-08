@@ -66,6 +66,14 @@ export class CollaboratorsService {
       throw new UnauthorizedException('Usuario no encontrado');
     };
 
+    const business = await this.businessRepository.findOne({
+      where: { inventories: { id: collaborator.inventory.id }}
+    })
+
+    if (!business) {
+      throw new NotFoundException('Negocio no encontrado');
+    };
+
     const isPasswordValid = await bcrypt.compare(
       password,
       collaborator.password,
@@ -82,6 +90,7 @@ export class CollaboratorsService {
       roles: collaborator.isAdmin
         ? [UserRole.BUSINESS_ADMIN]
         : [UserRole.COLLABORATOR],
+      businessId: business.id,
     };
 
     const token = this.JwtService.sign(collaboratorPayload, { expiresIn: '12h' });
