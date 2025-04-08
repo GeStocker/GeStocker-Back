@@ -20,8 +20,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SuperAdminModule } from './modules/super-admin/super-admin.module';
+import { VerificationCodesModule } from './modules/verification-codes/verification-codes.module';
 import { WebsocketModule } from './modules/websocket/websocket.module';
-
 
 
 @Module({
@@ -52,6 +52,7 @@ import { WebsocketModule } from './modules/websocket/websocket.module';
     LostProductsModule,
     MetricsModule,
     SuperAdminModule,
+    VerificationCodesModule,
     WebsocketModule,
   ], 
   controllers: [],

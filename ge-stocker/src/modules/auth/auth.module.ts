@@ -8,10 +8,13 @@ import { GoogleStrategy } from './authGoogle.startegy';
 import { StripeService } from '../payments/stripe.service';
 import { PurchasesService } from '../payments/payments.service';
 import { PurchaseLog } from '../payments/entities/payment.entity';
+import { PasswordResetToken } from '../verification-codes/entities/verification-code.entity';
+import { VerificationCodesService } from '../verification-codes/verification-codes.service';
+import { PasswordResetGuard } from './password-reset.guard';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, PurchaseLog]),
+    TypeOrmModule.forFeature([User, PurchaseLog, PasswordResetToken]),
     PassportModule.register({ defaultStrategy: 'google' }),
   ],
   controllers: [AuthController],
@@ -20,6 +23,8 @@ import { PurchaseLog } from '../payments/entities/payment.entity';
     GoogleStrategy,
     StripeService,
     PurchasesService,
+    VerificationCodesService,
+    PasswordResetGuard
   ],
 })
 export class AuthModule {}

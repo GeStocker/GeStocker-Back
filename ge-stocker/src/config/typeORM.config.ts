@@ -13,6 +13,7 @@ import { PurchaseLog } from 'src/modules/payments/entities/payment.entity';
 import { Product } from 'src/modules/products/entities/product.entity';
 import { SalesOrder } from 'src/modules/sales-order/entities/sales-order.entity';
 import { User } from 'src/modules/users/entities/user.entity';
+import { PasswordResetToken } from 'src/modules/verification-codes/entities/verification-code.entity';
 
 export const TypeOrmConfig = TypeOrmModule.forRootAsync({
     inject: [ConfigService],
@@ -23,7 +24,7 @@ export const TypeOrmConfig = TypeOrmModule.forRootAsync({
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User, Business, Inventory, Product, CategoriesProduct, InventoryProduct, IncomingShipment, IncomingProduct, Collaborator, PurchaseLog, SalesOrder, OutgoingProduct, LostProducts],
+        entities: [User, Business, Inventory, Product, CategoriesProduct, InventoryProduct, IncomingShipment, IncomingProduct, Collaborator, PurchaseLog, SalesOrder, OutgoingProduct, LostProducts, PasswordResetToken],
         synchronize: true,
         logging: false,
         // dropSchema: true,
