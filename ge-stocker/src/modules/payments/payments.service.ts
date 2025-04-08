@@ -143,38 +143,25 @@ async completePurchase(sessionId: string) {
         return this.purchaseLogRepository.save(purchase);
     }
 
-    async cancelSubscription(subscriptionId: string, immediate: boolean = false) {
-
+    async cancelSubscription(id: string) {  // Cambia nombre del parámetro
         const purchase = await this.purchaseLogRepository.findOne({
-            where: { id: subscriptionId, status: PaymentStatus.COMPLETED },
+            where: { 
+                id,  // Buscar por ID de tu entidad, no de Stripe
+                status: PaymentStatus.COMPLETED 
+            },
             relations: ['user']
         });
-
+    
         if (!purchase) {
             throw new NotFoundException('Suscripción no encontrada');
         }
-
-        const user = await this.usersRepository.findOne({ where: { id: purchase.user.id } });
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
-        }
-
-        const canceledSubscription = await this.stripeService.cancelSubscription(
-            subscriptionId,
-            immediate
-        );
-
+    
+        const user = purchase.user;
         user.isActive = false;
         purchase.status = PaymentStatus.CANCELED;
-        purchase.expirationDate = new Date(canceledSubscription.current_period_end * 1000);
-
-        if (immediate) {
-            const user = purchase.user;
-            user.isActive = false;
-            user.roles = [UserRole.BASIC];
-            await this.usersRepository.save(user);
-        }
-
+        purchase.expirationDate = new Date();
+    
+        await this.usersRepository.save(user);
         return this.purchaseLogRepository.save(purchase);
     }
 
