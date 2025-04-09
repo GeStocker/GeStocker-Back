@@ -42,6 +42,20 @@ export class BussinesController {
     return this.businessService.getUserBusinessById(businessId, userId);
   }
 
+  @Get(':businessId/owner')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(
+    UserRole.COLLABORATOR,
+    UserRole.BASIC,
+    UserRole.PROFESIONAL,
+    UserRole.BUSINESS,
+    UserRole.SUPERADMIN,
+    UserRole.BUSINESS_ADMIN
+  )
+  getBusinessOwnerId(@Param('businessId') businessId: string) {
+    return this.businessService.getBusinessOwnerId(businessId); 
+  }
+
   @Put(':businessId')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN, UserRole.COLLABORATOR)

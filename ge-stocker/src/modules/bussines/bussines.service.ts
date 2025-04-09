@@ -70,6 +70,20 @@ export class BussinesService {
     return business;
   }
 
+  async getBusinessOwnerId(businessId: string) {
+    const business = await this.businessRepository.findOne({
+      where: { id: businessId },
+      relations: ['user'],
+    });
+  
+    if (!business) {
+      throw new NotFoundException('Negocio no encontrado');
+    }
+  
+    return { userId: business.user.id };
+  }
+  
+
   async updateBusiness(businessId: string, updateBusinessDto: UpdateBusinessDto, userId: string): Promise<Business> {
     const business = await this.businessRepository.findOne({
       where: { id: businessId, user: { id: userId } }
