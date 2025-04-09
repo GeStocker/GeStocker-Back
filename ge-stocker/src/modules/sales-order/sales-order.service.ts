@@ -31,14 +31,11 @@ export class SalesOrderService {
   ) {}
   async createSalesOrder(
     createSalesOrderDto: CreateSalesOrderDto,
-    inventoryId: string,
-    userId: string
+    inventoryId: string
   ) {
-    const { description, discount, customer, outgoingProducts } =
-      createSalesOrderDto;
+    const { description, discount, customer, outgoingProducts } = createSalesOrderDto;
 
-    const queryRunner =
-      this.salesOrderRepository.manager.connection.createQueryRunner();
+    const queryRunner = this.salesOrderRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();
 
     try {
@@ -58,29 +55,14 @@ export class SalesOrderService {
           { where: { id: outgoingProductData.inventoryProductId } },
         );
         
-        if (!inventoryProduct)
-          throw new NotFoundException(
-        'Producto no encontrado en el inventario',
-      );
+        if (!inventoryProduct) throw new NotFoundException('Producto no encontrado en el inventario');
       
-      if (inventoryProduct.stock < outgoingProductData.quantity)
-        throw new BadRequestException(
-      `No hay suficiente stock para el producto ${inventoryProduct.product.name}`,
-    );
+        if (inventoryProduct.stock < outgoingProductData.quantity) throw new BadRequestException(`No hay suficiente stock para el producto ${inventoryProduct.product.name}`);
     
-    totalPrice += outgoingProductData.quantity * inventoryProduct.price;
+        totalPrice += outgoingProductData.quantity * inventoryProduct.price;
     
-    inventoryProduct.stock -= outgoingProductData.quantity;
-    const user = await this.userRepository.findOne({where:{
-      id: userId
-    }})
-    if (!user){
-      return ("Usuario no encontrado o inexistente")
-    }
-          if (inventoryProduct.stock < 5){
-            sendEmail(user.email, "Stock bajo", "trialWarning", {name: Product.name}
-            )
-          }
+        inventoryProduct.stock -= outgoingProductData.quantity;
+    
         updatedInventoryProducts.push(inventoryProduct);
 
         await queryRunner.manager.save(inventoryProduct);
