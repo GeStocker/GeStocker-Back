@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { OutgoingProductService } from './outgoing-product.service';
 import { CreateOutgoingProductDto } from './dto/create-outgoing-product.dto';
 import { UpdateOutgoingProductDto } from './dto/update-outgoing-product.dto';
@@ -8,13 +8,13 @@ export class OutgoingProductController {
   constructor(private readonly outgoingProductService: OutgoingProductService) {}
 
   @Get(':salesOrderId')
-  findOutgoingProductsBySalesOrder(@Param('salesOrderId') salesOrderId: string) {
+  findOutgoingProductsBySalesOrder(@Param('salesOrderId', ParseUUIDPipe) salesOrderId: string) {
     return this.outgoingProductService.findOutgoingProductsBySalesOrder(salesOrderId);
   }
 
   @Post(':salesOrderId')
   createOutgoingProductInSalesOrder(
-    @Param('salesOrderId') salesOrderId: string,
+    @Param('salesOrderId', ParseUUIDPipe) salesOrderId: string,
     @Body() createOutgoingProductDto: CreateOutgoingProductDto,
   ) {
     return this.outgoingProductService.createOutgoingProductInSalesOrder(salesOrderId, createOutgoingProductDto)
@@ -22,8 +22,8 @@ export class OutgoingProductController {
 
   @Patch(':salesOrderId/:outgoingProductId')
   updateOutgoingProductInSalesOrder(
-    @Param('salesOrderId') salesOrderId: string,
-    @Param('outgoingProductId') outgoingProductId: string,
+    @Param('salesOrderId', ParseUUIDPipe) salesOrderId: string,
+    @Param('outgoingProductId', ParseUUIDPipe) outgoingProductId: string,
     @Body() updateOutgoingProductDto: UpdateOutgoingProductDto,
   ) {
     return this.outgoingProductService.updateOutgoingProductInSalesOrder(salesOrderId, outgoingProductId, updateOutgoingProductDto)
@@ -31,8 +31,8 @@ export class OutgoingProductController {
 
   @Delete(':salesOrderId/:outgoingProductId')
   removeOutgoingProductFromSalesOrder(
-    @Param('outgoingProductId') outgoingProductId: string,
-    @Param('salesOrderId') salesOrderId: string,
+    @Param('outgoingProductId', ParseUUIDPipe) outgoingProductId: string,
+    @Param('salesOrderId', ParseUUIDPipe) salesOrderId: string,
   ) {
     return this.outgoingProductService.removeOutgoingProductFromSalesOrder(salesOrderId, outgoingProductId);
   }

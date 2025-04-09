@@ -30,7 +30,7 @@ export class ProductsController {
   @UseInterceptors(FileInterceptor('file'))
   createProduct(
     @Body() createProductDto: CreateProductDto,
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Req() request: CustomRequest,
     @UploadedFile() file?: Express.Multer.File,
   ) {
@@ -54,7 +54,7 @@ export class ProductsController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.findOne(id);
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { SuperAdminService } from './super-admin.service';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { AuthGuard } from '../auth/auth.guard';
@@ -22,14 +22,14 @@ export class SuperAdminController {
   @Get('users/businesses/:userId')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
-  getUserBusinesses(@Param('userId') userId: string) {
+  getUserBusinesses(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.superAdminService.getUserBusinesses(userId);
   }
 
   @Get('business/products/:businessId')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
-  getBusinessProducts(@Param('businessId') businessId: string) {
+  getBusinessProducts(@Param('businessId', ParseUUIDPipe) businessId: string) {
     return this.superAdminService.getBusinessProducts(businessId);
   }
 
@@ -44,7 +44,7 @@ export class SuperAdminController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
   banUser(
-    @Param('userId') userId: string, 
+    @Param('userId', ParseUUIDPipe) userId: string, 
     @Body() reason: string) {
     return this.superAdminService.banUser(userId, reason);
   }
@@ -52,14 +52,14 @@ export class SuperAdminController {
   @Patch('users/unban/:userId')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
-  unbanUser(@Param('userId') userId: string) {
+  unbanUser(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.superAdminService.unbanUser(userId);
   }
 
   @Patch('users/sub/:userId')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.SUPERADMIN)
-  changeUserSubscription(@Param('userId') userId: string, @Body() newPlan: UserRole) {
+  changeUserSubscription(@Param('userId', ParseUUIDPipe) userId: string, @Body() newPlan: UserRole) {
     return this.superAdminService.changeUserSubscription(userId, newPlan)
   }
 }

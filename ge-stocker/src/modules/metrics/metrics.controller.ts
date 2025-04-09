@@ -1,4 +1,4 @@
-import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, ParseUUIDPipe, Query, Req, UseGuards } from '@nestjs/common';
 import { MetricsService } from './metrics.service';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -14,7 +14,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getMonthlyProfit(
-    @Param('businessId') businessId: string, 
+    @Param('businessId', ParseUUIDPipe) businessId: string, 
     @Req() request: CustomRequest,
     @Query('year') year?: string,
   ) {
@@ -35,7 +35,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getProductsWithoutSales(
-    @Param('businessId') businessId: string, 
+    @Param('businessId', ParseUUIDPipe) businessId: string, 
     @Query('days', new DefaultValuePipe(90), ParseIntPipe) days: number,
   ) {
     return this.metricsService.getProductsWithoutSales(businessId, days);
@@ -45,7 +45,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getProfitMargin(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Query('category') categoryId?: string,
     @Query('expand') expand?: boolean,
   ) {
@@ -56,7 +56,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getAverageSalesByProduct(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Query('sortBy') sortBy: 'daily' | 'monthly' = 'daily',
     @Query('category') categoryId?: string,
     @Query('expand') expand?: boolean,
@@ -68,7 +68,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN)
   getInventoryEficiency(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Query('days') days: 30 | 60 | 90 = 30,
     @Query('category') categoryId?: string,
     @Query('expand') expand?: boolean,
@@ -80,7 +80,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BUSINESS, UserRole.SUPERADMIN)
   getLostProductsCost(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Query('category') categoryId?: string,
     @Query('expand') expand?: boolean,
   ) {
@@ -91,7 +91,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BUSINESS, UserRole.SUPERADMIN)
   getInventoryRotationRate(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Query('days') days: 30 | 60 | 90 = 30,
     @Query('category') categoryId?: string,
     @Query('expand') expand?: boolean,
@@ -103,7 +103,7 @@ export class MetricsController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BUSINESS, UserRole.SUPERADMIN)
   getCompareInventoryPerformance(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Query('range') range: 30 | 60 | 90 | 270 | 365 = 30,
     @Query('sortBy') sortBy: 'salesCount' | 'lostCost' | 'turnoverRate' | 'efficiency' = 'salesCount',
   ) {
