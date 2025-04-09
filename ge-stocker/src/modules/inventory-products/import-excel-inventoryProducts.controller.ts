@@ -16,7 +16,7 @@ import {
     ) {}
   
     @Post()
-    @UseInterceptors(FileInterceptor('file')) // el campo debe llamarse 'file'
+    @UseInterceptors(FileInterceptor('file'))
     async uploadFile(
       @UploadedFile() file: Express.Multer.File,
       @Body('userId') userId: string,

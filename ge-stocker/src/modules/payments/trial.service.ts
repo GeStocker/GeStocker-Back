@@ -53,7 +53,7 @@ export class TrialService {
       await sendEmail(
         user.email,
         'Tu prueba gratuita ha terminado',
-        'trialWarning',
+        'trialFinished',
         {
           name: user.name,
           checkoutUrl: session.url ?? '',

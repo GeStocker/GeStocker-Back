@@ -77,10 +77,6 @@ export class SalesOrderService {
     if (!user){
       return ("Usuario no encontrado o inexistente")
     }
-          if (inventoryProduct.stock < 5){
-            sendEmail(user.email, "Stock bajo", "trialWarning", {name: Product.name}
-            )
-          }
         updatedInventoryProducts.push(inventoryProduct);
 
         await queryRunner.manager.save(inventoryProduct);

@@ -100,7 +100,7 @@ export class InventoryProductsService {
     }
   
      if (inventoryProduct.stock < 5){
-      await sendEmail(user.email, "Stock insuficiente", "welcome", { name: user.name });
+      await sendEmail(user.email, "Stock insuficiente", "stockBajo", { name: user.name , product: inventoryProduct.product.name});
       return 'Correo de stock bajo enviado';
     }
   
