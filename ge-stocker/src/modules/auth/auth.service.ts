@@ -218,78 +218,40 @@ export class AuthService {
     registerUrl?: string;
   }> {
     const { email, firstName, lastName, picture } = profile;
-    console.log(selectedPlan)
-    // 1. Buscar usuario existente
-    const user = await this.userRepository.findOne({
+    let isNewUser = false;
+    let user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
-
-    // 2. Manejo de nuevo usuario
     if (!user) {
-      // Si no viene con plan, redirigir a registro
-      if (!selectedPlan) {
+      if(!selectedPlan){
         return {
-          success: 'Usuario no registrado',
+          success: 'Usuario nuevo, redirigiendo a registro',
           isNewUser: true,
           registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
         };
       }
-
-      // Validar plan válido
-      if (!Object.values(SubscriptionPlan).includes(selectedPlan as SubscriptionPlan)) {
-        throw new BadRequestException('Plan seleccionado no válido');
-      }
-
-      // Crear nuevo usuario solo si hay plan válido
-      const newUser = await this.userRepository.save({
+      user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
         img: picture,
         roles: [UserRole.BASIC],
         isActive: false,
       });
-
-      // Manejar suscripción
-      return this.handleSubscription(newUser, selectedPlan as SubscriptionPlan);
+      isNewUser = true;
+    
+      return {
+        success: 'Usuario nuevo, redirigiendo a registro',
+        isNewUser: true,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+      };
     }
-
-    // 3. Usuario existente con plan (flujo de registro)
-    if (selectedPlan) {
-      if (!Object.values(SubscriptionPlan).includes(selectedPlan as SubscriptionPlan)) {
-        return {
-          success: 'Usuario no registrado',
-          isNewUser: true,
-          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
-        };
-      }
-      return this.handleSubscription(user, selectedPlan as SubscriptionPlan);
-    }
-
-    // 4. Usuario existente y activo (login normal)
-    if (user.isActive) {
-      const token = this.generateJwtToken(user);
-      return { success: 'Inicio de sesión exitoso', token };
-    }
-
-    // 5. Usuario existente pero inactivo
-    return {
-      success: 'Complete su registro',
-      registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
-    };
-  }
-
-  private async handleSubscription(
-    user: User,
-    selectedPlan: SubscriptionPlan
-  ) {
+    
     const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
-
-    // Manejar trial básico
     if (isBasicTrial) {
       const trialExpiration = new Date();
       trialExpiration.setDate(trialExpiration.getDate() + 7);
-
+  
       const trialPurchase = this.purchaseLogRepository.create({
         user,
         amount: 0,
@@ -297,11 +259,12 @@ export class AuthService {
         status: PaymentStatus.TRIAL,
         expirationDate: trialExpiration,
       });
-
+  
       await this.purchaseLogRepository.save(trialPurchase);
+  
       user.isActive = true;
       await this.userRepository.save(user);
-
+  
       await sendEmail(
         user.email,
         "Bienvenido a GeStocker - Prueba Gratuita",
@@ -311,28 +274,33 @@ export class AuthService {
           trialEndDate: trialExpiration.toLocaleDateString(),
         }
       );
-
       const token = this.generateJwtToken(user);
-      return { success: 'Inicio de sesión exitoso', token };
+      return {
+        success: 'Inicio de sesión exitoso',
+        token,
+      };
     }
-
-    // Manejar planes de pago
-    const priceId = this.getStripePriceId(selectedPlan);
-    const session = await this.stripeService.createCheckoutSession(priceId, user.id);
+    const token = this.generateJwtToken(user);
+    if (!user.isActive) {
+      const priceId = this.getStripePriceId(selectedPlan);
+      const session = await this.stripeService.createCheckoutSession(priceId, user.id);
+      const pendingPurchase = await this.purchasesService.createPendingPurchase(
+        user.id,
+        (session.amount_total ?? 0) / 100,
+        session.id
+      );
+      const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
+        pendingPurchase.stripeSessionId
+      );
+      return {
+        success: 'Por favor complete su suscripción',
+        checkoutUrl: checkoutUrl ?? undefined,
+      };
+    }
     
-    const pendingPurchase = await this.purchasesService.createPendingPurchase(
-      user.id,
-      (session.amount_total ?? 0) / 100,
-      session.id
-    );
-
-    const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
-      pendingPurchase.stripeSessionId
-    );
-
     return {
-      success: 'Por favor complete su suscripción',
-      checkoutUrl: checkoutUrl ?? undefined,
+      success: 'Inicio de sesión exitoso',
+      token,
     };
   }
 
