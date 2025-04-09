@@ -64,7 +64,7 @@ export class ProductsService {
     const { name, description, category } = createProductDto;
 
     const productExistance = await this.productRepository.findOne({
-      where: { name },
+      where: { name, business: { id: businessId } },
     });
 
     if (productExistance) throw new ConflictException('El producto ya existe!');
