@@ -165,6 +165,8 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
 
+    if (user.isBanned) throw new UnauthorizedException('El usuario ha sido baneado');
+
     const token = this.generateJwtToken(user);
 
     if (!user.isActive) {
@@ -223,6 +225,7 @@ export class AuthService {
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
+
     if (!user) {
       if(!selectedPlan){
         return {
@@ -246,6 +249,8 @@ export class AuthService {
         registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
       };
     }
+
+    if(user.isBanned) throw new UnauthorizedException('El usuario ha sido baneado');
     
     const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
     if (isBasicTrial) {

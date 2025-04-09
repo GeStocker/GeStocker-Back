@@ -2,12 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Pars
 import { SalesOrderService } from './sales-order.service';
 import { CreateSalesOrderDto } from './dto/create-sales-order.dto';
 import { UpdateSalesOrderDto } from './dto/update-sales-order.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('sales-order')
 export class SalesOrderController {
   constructor(private readonly salesOrderService: SalesOrderService) {}
 
   @Post(':inventoryId')
+  @UseGuards(AuthGuard)
   createSalesOrder(
     @Body() createSalesOrderDto: CreateSalesOrderDto,
     @Param('inventoryId', ParseUUIDPipe) inventoryId: string,
