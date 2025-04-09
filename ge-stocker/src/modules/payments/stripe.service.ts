@@ -72,6 +72,7 @@ export class StripeService {
             prorate: immediate
         });
     }
+    
 
     async getPriceAmount(priceId: string): Promise<number> {
         const price = await this.stripe.prices.retrieve(priceId);
