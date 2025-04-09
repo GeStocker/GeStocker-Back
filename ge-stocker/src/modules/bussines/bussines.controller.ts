@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Req, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Req, Put, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { BussinesService } from './bussines.service';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
@@ -35,7 +35,7 @@ export class BussinesController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN)
   getUserBusinessById(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Req() request: CustomRequest
   ) {
     const userId = request.user.id
@@ -52,7 +52,7 @@ export class BussinesController {
     UserRole.SUPERADMIN,
     UserRole.BUSINESS_ADMIN
   )
-  getBusinessOwnerId(@Param('businessId') businessId: string) {
+  getBusinessOwnerId(@Param('businessId', ParseUUIDPipe) businessId: string) {
     return this.businessService.getBusinessOwnerId(businessId); 
   }
 
@@ -60,7 +60,7 @@ export class BussinesController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BASIC, UserRole.PROFESIONAL, UserRole.BUSINESS, UserRole.SUPERADMIN, UserRole.BUSINESS_ADMIN, UserRole.COLLABORATOR)
   updateBusiness(
-    @Param('id') businessId: string,
+    @Param('id', ParseUUIDPipe) businessId: string,
     @Body() updateBussineDto: UpdateBusinessDto,
     @Req() request: CustomRequest
   ) {
