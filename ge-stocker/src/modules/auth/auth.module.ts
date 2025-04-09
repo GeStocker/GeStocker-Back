@@ -11,10 +11,12 @@ import { PurchaseLog } from '../payments/entities/payment.entity';
 import { PasswordResetToken } from '../verification-codes/entities/verification-code.entity';
 import { VerificationCodesService } from '../verification-codes/verification-codes.service';
 import { PasswordResetGuard } from './password-reset.guard';
+import { Collaborator } from '../collaborators/entities/collaborator.entity';
+import { Business } from '../bussines/entities/bussines.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, PurchaseLog, PasswordResetToken]),
+    TypeOrmModule.forFeature([User, PurchaseLog, PasswordResetToken, Collaborator, Business]),
     PassportModule.register({ defaultStrategy: 'google' }),
   ],
   controllers: [AuthController],

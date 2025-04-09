@@ -14,9 +14,10 @@ import { IncomingShipmentService } from '../incoming-shipment/incoming-shipment.
 import { IncomingShipmentController } from '../incoming-shipment/incoming-shipment.controller';
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
 import { IncomingShipmentModule } from '../incoming-shipment/incoming-shipment.module';
+import { Collaborator } from '../collaborators/entities/collaborator.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User, IncomingShipment]),
+  imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User, IncomingShipment, Collaborator]),
 ProductsModule,
 IncomingShipmentModule],
   controllers: [InventoryProductsController, ExcelInventoryImportController, IncomingShipmentController],

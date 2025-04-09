@@ -9,9 +9,10 @@ import { Business } from '../bussines/entities/bussines.entity';
 import { User } from '../users/entities/user.entity';
 import { InventoryProduct } from '../inventory-products/entities/inventory-products.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
+import { Collaborator } from '../collaborators/entities/collaborator.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SalesOrder, IncomingShipment, LostProducts, Business, User, InventoryProduct, Inventory])],
+  imports: [TypeOrmModule.forFeature([SalesOrder, IncomingShipment, LostProducts, Business, User, InventoryProduct, Inventory, Collaborator])],
   controllers: [MetricsController],
   providers: [MetricsService],
 })

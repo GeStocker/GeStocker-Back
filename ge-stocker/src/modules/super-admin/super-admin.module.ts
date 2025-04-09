@@ -6,9 +6,10 @@ import { User } from '../users/entities/user.entity';
 import { Business } from '../bussines/entities/bussines.entity';
 import { Product } from '../products/entities/product.entity';
 import { PurchaseLog } from '../payments/entities/payment.entity';
+import { Collaborator } from '../collaborators/entities/collaborator.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Business, Product, PurchaseLog])],
+  imports: [TypeOrmModule.forFeature([User, Business, Product, PurchaseLog, Collaborator])],
   controllers: [SuperAdminController],
   providers: [SuperAdminService],
 })

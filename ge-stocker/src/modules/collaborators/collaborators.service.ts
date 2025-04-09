@@ -67,12 +67,15 @@ export class CollaboratorsService {
     };
 
     const business = await this.businessRepository.findOne({
-      where: { inventories: { id: collaborator.inventory.id }}
+      where: { inventories: { id: collaborator.inventory.id }},
+      relations: ['user']
     })
 
     if (!business) {
       throw new NotFoundException('Negocio no encontrado');
     };
+
+    if(business.user.isBanned) throw new UnauthorizedException('El dueño de este negocio ha sido baneado')
 
     const isPasswordValid = await bcrypt.compare(
       password,
