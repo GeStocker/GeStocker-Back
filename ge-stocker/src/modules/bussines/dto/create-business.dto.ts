@@ -8,7 +8,7 @@ export class CreateBusinessDto {
   })
   @IsNotEmpty()
   @IsString()
-  @MinLength(3)
+  @MinLength(2)
   name: string;
 
   @ApiProperty({
@@ -17,7 +17,7 @@ export class CreateBusinessDto {
   })
   @IsNotEmpty()
   @IsString()
-  @MinLength(5)
+  @MinLength(3)
   address: string;
 
   @ApiProperty({
@@ -26,6 +26,6 @@ export class CreateBusinessDto {
   })
   @IsNotEmpty()
   @IsString()
-  @MinLength(10)
+  @MinLength(5)
   description: string;
 }

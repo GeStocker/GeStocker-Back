@@ -21,9 +21,6 @@ export class SuperAdminService {
     @InjectRepository(PurchaseLog)
     private readonly purchaseLogRepository: Repository<PurchaseLog>,
   ) {}
-  create(createSuperAdminDto: CreateSuperAdminDto) {
-    return 'This action adds a new superAdmin';
-  }
 
   async getAllUsersList(isActive: boolean = true, plan?: string) {
     const query = this.userRepository
@@ -63,6 +60,7 @@ export class SuperAdminService {
     if(!user) throw new NotFoundException('Usuario no encontrado')
 
     user.isActive = false;
+    user.isBanned = true;
     user.banReason = `${user.banReason || ''}\n[${new Date().toLocaleDateString()}] ${reason}`;
 
     await this.userRepository.save(user);
@@ -74,6 +72,7 @@ export class SuperAdminService {
     if(!user) throw new NotFoundException('Usuario no encontrado');
 
     user.isActive = true;
+    user.isBanned = false;
 
     await this.userRepository.save(user);
 
