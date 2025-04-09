@@ -47,7 +47,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     });
 
     this.websocketService.sendMessageToReceiver(message)
-    client.emit('messageSend', message)
+    client.emit('receiveMessage', message)
   }
 
   @SubscribeMessage('getMessages')
