@@ -49,7 +49,6 @@ export class AuthGuard implements CanActivate {
                 });
 
                 if(!collaborator) throw new UnauthorizedException('Colaborador no encontrado');
-
                 const business = await this.businessRepository.findOne({
                     where: { inventories: { id: collaborator.inventory.id } },
                     relations: ['user'],
