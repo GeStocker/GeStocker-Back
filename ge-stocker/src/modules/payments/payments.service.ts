@@ -158,7 +158,7 @@ async completePurchase(sessionId: string) {
     
         const user = purchase.user;
         user.isActive = false;
-        purchase.status = PaymentStatus.CANCELED;
+        purchase.status = PaymentStatus.PENDING;
         purchase.expirationDate = new Date();
     
         await this.usersRepository.save(user);

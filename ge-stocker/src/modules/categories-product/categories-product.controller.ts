@@ -12,7 +12,7 @@ export class CategoriesProductController {
   @UseGuards(AuthGuard)
   async createCategory(
     @Body() createCategoriesProductDto: CreateCategoriesProductDto,
-    @Param('businessId') businessId: string
+    @Param('businessId', ParseUUIDPipe) businessId: string
   ) {
     return this.categoriesProductService.createCategory(
       createCategoriesProductDto,
@@ -27,13 +27,13 @@ export class CategoriesProductController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.categoriesProductService.findOne(+id);
   }
 
   @Patch(':businessId/:id')
   updateCategory(
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Param('id') id: string,
     @Body() updateCategoriesProductDto: UpdateCategoriesProductDto) {
     return this.categoriesProductService.updateCategory(id, businessId, updateCategoriesProductDto);
