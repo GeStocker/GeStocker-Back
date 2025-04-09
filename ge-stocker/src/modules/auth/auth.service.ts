@@ -324,10 +324,6 @@ export class AuthService {
       business: this.configService.get('STRIPE_BUSINESS_PRICE_ID')
     };
 
-    if (!planPriceIds[selectedPlan]) {
-      throw new BadRequestException('Plan seleccionado no válido');
-    }
-
     return planPriceIds[selectedPlan];
   }
 
