@@ -2,12 +2,13 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaymentMethod, PurchaseLog, PaymentStatus } from '../payments/entities/payment.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { ConfigService } from '@nestjs/config';
 import { StripeService } from './stripe.service';
 import { sendEmail } from 'src/emails/config/mailer';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class PurchasesService {
@@ -164,6 +165,48 @@ async completePurchase(sessionId: string) {
         await this.usersRepository.save(user);
         return this.purchaseLogRepository.save(purchase);
     }
+
+    @Cron('0 0 0 * * *')
+async handleExpiredSubscriptions() {
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + 3);
+
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  console.log('Buscando expiraciones entre:', startOfDay, 'y', endOfDay);
+
+  const aboutToExpire = await this.purchaseLogRepository.find({
+    where: {
+      status: PaymentStatus.COMPLETED,
+      expirationDate: Between(startOfDay, endOfDay),
+    },
+    relations: ['user'],
+  });
+
+  console.log(`Encontradas ${aboutToExpire.length} suscripciones`);
+
+  for (const purchase of aboutToExpire) {
+    const user = purchase.user;
+    const role = user.roles[0];
+
+    try {
+      await sendEmail(
+        user.email,
+        "Tu suscripción está por vencer",
+        "fechaLimiteMembresia",
+        { role, name: user.name }
+      );
+      console.log(`Mail enviado a ${user.email}`);
+    } catch (err) {
+      console.error(`Error al enviar email a ${user.email}:`, err);
+    }
+  }
+}
+
 
     async getPendingPurchase(userId: string): Promise<PurchaseLog> {
         const purchase = await this.purchaseLogRepository.findOne({
