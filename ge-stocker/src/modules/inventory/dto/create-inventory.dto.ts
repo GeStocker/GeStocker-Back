@@ -7,7 +7,7 @@ export class CreateInventoryDto {
     description: 'Nombre del local'
   })
   @IsNotEmpty()
-  @MinLength(5)
+  @MinLength(2)
   @IsString()
   name: string;
 
@@ -16,7 +16,7 @@ export class CreateInventoryDto {
     description: 'Descripcion del local o inventario que esta creando'
   })
   @IsNotEmpty()
-  @MinLength(10)
+  @MinLength(5)
   @IsString()
   description: string;
   
@@ -25,7 +25,7 @@ export class CreateInventoryDto {
     description: 'Direccion del local'
   })
   @IsNotEmpty()
-  @MinLength(10)
+  @MinLength(3)
   @IsString()
   address: string;
 }

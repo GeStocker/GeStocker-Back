@@ -52,9 +52,9 @@ export class ProductsService {
     let maxProducts = 0;
  
     if(roles.includes(UserRole.BASIC)) {
-      maxProducts = 50;
+      maxProducts = 500;
     } else if (roles.includes(UserRole.PROFESIONAL)) {
-      maxProducts = 500
+      maxProducts = 5000;
     } else if (roles.includes(UserRole.BUSINESS)) {
       maxProducts = Infinity;
     };

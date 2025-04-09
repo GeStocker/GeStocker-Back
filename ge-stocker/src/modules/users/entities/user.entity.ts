@@ -83,6 +83,9 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: false })
+  isBanned: boolean;
+
   @Column({ type: 'text', nullable: true })
   banReason?: string;
 
