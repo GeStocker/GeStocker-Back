@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseUUIDPipe } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
@@ -17,7 +17,7 @@ export class InventoryController {
   @UseGuards(AuthGuard)
   createInventory(
     @Body() createInventoryDto: CreateInventoryDto,
-    @Param('businessId') businessId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
     @Req() request: CustomRequest,
   ): Promise<Inventory> {
     const userId = request.user.id;
@@ -33,14 +33,14 @@ export class InventoryController {
 
   @Get(':businessId')
   @UseGuards(AuthGuard)
-  getBusinessInventories(@Param('businessId') businessId: string){
+  getBusinessInventories(@Param('businessId', ParseUUIDPipe) businessId: string){
     return this.inventoryService.getBusinessInventories(businessId);
   }
 
   @Get(':id')
   @UseGuards(AuthGuard)
   getInventoryById(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() request: CustomRequest,
   ): Promise<Inventory> {
     return this.inventoryService.getInventoryById(id, request);
@@ -50,14 +50,14 @@ export class InventoryController {
   @UseGuards(AuthGuard)
   updateInventory(
     @Param('businessId') businessId: string, 
-    @Param('id') id: string, 
+    @Param('id', ParseUUIDPipe) id: string, 
     @Body() updateInventoryDto: UpdateInventoryDto): Promise<Inventory> {
     return this.inventoryService.updateInventory(id, updateInventoryDto, businessId);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
-  removeInventory(@Param('id') id: string): Promise<Inventory> {
+  removeInventory(@Param('id', ParseUUIDPipe) id: string): Promise<Inventory> {
     return this.inventoryService.removeInventory(id);
   }
 }

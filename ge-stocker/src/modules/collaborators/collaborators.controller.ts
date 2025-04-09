@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   Patch,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CollaboratorsService } from './collaborators.service';
 import { CreateCollaboratorDto, LoginCollaboratorDto } from './dto/create-collaborator.dto';
@@ -34,20 +35,20 @@ export class CollaboratorsController {
 
   @Post('/login')
   login(@Body() credentials: LoginCollaboratorDto,
-@Body('businessId') businessId: string) {
+    @Body('businessId') businessId: string) {
     return this.collaboratorsService.loginCollaborator(credentials);
   }
 
   @Patch(':id/promote-to-admin')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.BUSINESS, UserRole.ADMIN, UserRole.SUPERADMIN)
-  async promoteToAdmin(@Param('id') id: string) {
+  async promoteToAdmin(@Param('id', ParseUUIDPipe) id: string) {
     return this.collaboratorsService.promoteToAdmin(id);
   }
 
   @Get('business/:businessId')
   @UseGuards(AuthGuard)
-  findBusinessCollaborators(@Param('businessId') businessId: string) {
+  findBusinessCollaborators(@Param('businessId', ParseUUIDPipe) businessId: string) {
     return this.collaboratorsService.findBusinessCollaborators(businessId);
   }
 
@@ -60,7 +61,7 @@ export class CollaboratorsController {
     UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.collaboratorsService.findOne(id);
   }
 
@@ -73,7 +74,7 @@ export class CollaboratorsController {
     UserRole.SUPERADMIN,
   )
   @UseGuards(AuthGuard, RolesGuard)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.collaboratorsService.deactivateCollaborator(id);
   }
 }

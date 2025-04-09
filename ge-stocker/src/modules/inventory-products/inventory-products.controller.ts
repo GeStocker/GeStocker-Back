@@ -21,7 +21,7 @@ export class InventoryProductsController {
   @Put('price/:id')
   @UseGuards(AuthGuard)
   updatePrice(
-    @Param('id') inventoryProductId: string,
+    @Param('id', ParseUUIDPipe) inventoryProductId: string,
     @Body() updatePriceDto: UpdatePriceDto,
   ) {
     return this.inventoryProductsService.updatePrice(inventoryProductId, updatePriceDto)

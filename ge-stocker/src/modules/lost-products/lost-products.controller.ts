@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { LostProductsService } from './lost-products.service';
 import { CreateLostProductDto } from './dto/create-lost-product.dto';
 import { UpdateLostProductDto } from './dto/update-lost-product.dto';
@@ -12,8 +12,8 @@ export class LostProductsController {
   @UseGuards(AuthGuard)
   registerLostProducts(
     @Body() createLostProductDto: CreateLostProductDto,
-    @Param('businessId') businessId: string,
-    @Param('inventoryId') inventoryId: string,
+    @Param('businessId', ParseUUIDPipe) businessId: string,
+    @Param('inventoryId', ParseUUIDPipe) inventoryId: string,
   ) {
     return this.lostProductsService.registerLostProducts(createLostProductDto, businessId, inventoryId);
   }
