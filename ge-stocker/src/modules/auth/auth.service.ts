@@ -223,14 +223,14 @@ export class AuthService {
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
+    if(!selectedPlan){
+      return {
+        success: 'Usuario nuevo, redirigiendo a registro',
+        isNewUser: true,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+      };
+    }
     if (!user) {
-      if(!selectedPlan){
-        return {
-          success: 'Usuario nuevo, redirigiendo a registro',
-          isNewUser: true,
-          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
-        };
-      }
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
@@ -323,6 +323,10 @@ export class AuthService {
       professional: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
       business: this.configService.get('STRIPE_BUSINESS_PRICE_ID')
     };
+
+    if (!planPriceIds[selectedPlan]) {
+      throw new BadRequestException('Plan seleccionado no válido');
+    }
 
     return planPriceIds[selectedPlan];
   }
