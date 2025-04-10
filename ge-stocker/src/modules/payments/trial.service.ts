@@ -61,7 +61,7 @@ export class TrialService {
     }
   }
 
-  @Cron('0 0 0 */2 * *')
+  @Cron("0 */10 * * * *")
   async sendTrialReminders() {
     try {
       const threeDaysFromNow = new Date();
