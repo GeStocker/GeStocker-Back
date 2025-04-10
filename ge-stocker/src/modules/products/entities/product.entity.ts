@@ -27,7 +27,7 @@ export class Product {
     @Column({
         type: 'text',
         nullable: false,
-        default: 'default-image-url.png'
+        default: 'https://res.cloudinary.com/dikjpvebs/image/upload/v1744244874/fd3d8e2a1dd4f09b4170d31e26913bab_ptwnjx.jpg'
     })
     img: string;
 
