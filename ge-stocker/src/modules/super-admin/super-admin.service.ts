@@ -38,7 +38,7 @@ export class SuperAdminService {
       .where('user.isActive = :isActive', { isActive });
 
     if (search) {
-      query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}%`});
+      query.andWhere('LOWER(user.name) LIKE LOWER(:search)', { search: `%${search}%`});
     };
     
     if(plan) {
