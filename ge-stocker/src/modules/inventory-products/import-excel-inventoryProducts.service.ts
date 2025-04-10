@@ -27,7 +27,7 @@ export class ExcelImportInventoryService {
       description: row['Description'],
       category: row['Category'],
       stock: Number(row['Stock']),
-      price: Number(row['Price']),
+      price: Number(row['SellingPrice']),
       purchasePrice: Number(row['Purchase Price']),
     }));
   }
