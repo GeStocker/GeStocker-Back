@@ -57,7 +57,9 @@ export class ProductsService {
       maxProducts = 5000;
     } else if (roles.includes(UserRole.BUSINESS)) {
       maxProducts = Infinity;
-    };
+    } else if (roles.includes(UserRole.SUPERADMIN)) {
+      maxProducts = Infinity;
+   }
  
      if (productCount >= maxProducts) throw new ForbiddenException(`No puede crear mas de ${maxProducts} productos por Negocio en tu plan actual`);
 
