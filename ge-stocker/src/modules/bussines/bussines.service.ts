@@ -34,7 +34,9 @@ export class BussinesService {
        maxBusinesses = 3;
     } else if (roles.includes(UserRole.BUSINESS)) {
        maxBusinesses = Infinity;
-    };
+    } else if (roles.includes(UserRole.SUPERADMIN)) {
+       maxBusinesses = Infinity;
+    }
  
     if(businessCount >= maxBusinesses) throw new ForbiddenException(`No puedes crear mas de ${maxBusinesses} negocios en tu plan actual`)
 

@@ -39,7 +39,9 @@ export class InventoryService {
       maxInventories = 5;
     } else if (roles.includes(UserRole.BUSINESS)) {
       maxInventories = Infinity;
-    };
+    } else if (roles.includes(UserRole.SUPERADMIN)) {
+      maxInventories = Infinity;
+   }
     
     if (inventoryCount >= maxInventories) throw new ForbiddenException(`No puedes crear mas de ${maxInventories} inventarios por negocio en tu plan actual.`);
     const business = await this.businessRepository.findOne({
