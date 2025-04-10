@@ -25,7 +25,7 @@ export class PurchasesController {
   @Post('subscribe/:priceId')
   @UseGuards(AuthGuard)
   async createSubscription(
-    @Param('priceId', ParseUUIDPipe) priceId: string,
+    @Param('priceId') priceId: string,
     @Request() req,
   ) {
     const session = await this.stripeService.createCheckoutSession(priceId, req.user.id);
@@ -38,14 +38,14 @@ export class PurchasesController {
   }
 
   @Post('success/:sessionId')
-  async handleSuccess(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
+  async handleSuccess(@Param('sessionId') sessionId: string) {
     return this.purchasesService.completePurchase(sessionId);
   }
 
   @Patch('subscription/:subscriptionId')
   @UseGuards(AuthGuard)
   async updateSubscription(
-    @Param('subscriptionId', ParseUUIDPipe) subscriptionId: string,
+    @Param('subscriptionId') subscriptionId: string,
     @Body('newPriceId') newPriceId: string,
     @Request() req
   ) {
