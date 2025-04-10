@@ -226,6 +226,13 @@ export class AuthService {
       select: ['id', 'email', 'roles', 'isActive'],
     });
     if (!user) {
+      if(!selectedPlan){
+        return {
+          success: 'Usuario nuevo, redirigiendo a registro',
+          isNewUser: true,
+          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+        };
+      }
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
@@ -238,7 +245,7 @@ export class AuthService {
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
-        registerUrl: `${this.configService.get('FRONTEND_URL')}/login`,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
       };
     }
     
@@ -273,6 +280,14 @@ export class AuthService {
       return {
         success: 'Inicio de sesión exitoso',
         token,
+      };
+    }
+    if (user.isBanned) throw new UnauthorizedException('El usuario ha sido baneado');
+    if(!selectedPlan){
+      return {
+        success: 'Usuario nuevo, redirigiendo a registro',
+        isNewUser: true,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
       };
     }
     const token = this.generateJwtToken(user);
