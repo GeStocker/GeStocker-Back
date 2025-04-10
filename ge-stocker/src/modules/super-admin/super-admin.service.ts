@@ -23,7 +23,7 @@ export class SuperAdminService {
     private readonly purchaseLogRepository: Repository<PurchaseLog>,
   ) {}
 
-  async getAllUsersList(isActive: boolean = true, plan?: string) {
+  async getAllUsersList(isActive: boolean = true, plan?: string, search?: string) {
     const query = this.userRepository
       .createQueryBuilder('user')
       .leftJoin('user.businesses', 'business')
@@ -36,6 +36,10 @@ export class SuperAdminService {
         'user.isActive',
       ])
       .where('user.isActive = :isActive', { isActive });
+
+    if (search) {
+      query.andWhere('LOWER(product.name) LIKE LOWER(:search)', { search: `%${search}%`});
+    };
     
     if(plan) {
       query.andWhere('user.roles = :plan', { plan });
