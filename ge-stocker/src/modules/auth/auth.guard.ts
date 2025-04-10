@@ -42,21 +42,21 @@ export class AuthGuard implements CanActivate {
                 if(!user || user.isBanned) throw new UnauthorizedException('Usuario baneado');
             };
 
-            if(payload.roles?.includes('COLLABORATOR') || payload.roles?.includes('BUSINESS_ADMIN')) {
-                const collaborator = await this.collaboratorRepository.findOne({
-                    where: { id: payload.id },
-                    relations: ['inventory'],
-                });
+            // if(payload.roles?.includes('COLLABORATOR') || payload.roles?.includes('BUSINESS_ADMIN')) {
+            //     const collaborator = await this.collaboratorRepository.findOne({
+            //         where: { id: payload.id },
+            //         relations: ['inventory'],
+            //     });
 
-                if(!collaborator) throw new UnauthorizedException('Colaborador no encontrado');
+            //     if(!collaborator) throw new UnauthorizedException('Colaborador no encontrado');
 
-                const business = await this.businessRepository.findOne({
-                    where: { inventories: { id: collaborator.inventory.id } },
-                    relations: ['user'],
-                });
+            //     const business = await this.businessRepository.findOne({
+            //         where: { inventories: { id: collaborator.inventory.id } },
+            //         relations: ['user'],
+            //     });
 
-                if(!business || business.user.isBanned) throw new UnauthorizedException('Usuario baneado');
-            }
+            //     if(!business || business.user.isBanned) throw new UnauthorizedException('Usuario baneado');
+            // }
             
             payload.iat = new Date(payload.iat * 1000);
             payload.exp = new Date(payload.exp * 1000);
