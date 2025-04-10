@@ -50,7 +50,7 @@ export class CollaboratorsService {
       business
     });
 
-    await sendEmail(newCollaborator.email, 'Bienvenido a Ge-Stocker', 'colaborattor', {username: newCollaborator.username, password: collaborator.password});
+    await sendEmail(newCollaborator.email, 'Bienvenido a Ge-Stocker', 'colaborattor', {email: newCollaborator.email, password: collaborator.password});
     const { password: _, ...collaboratorWithoutPassword } = newCollaborator;
     return collaboratorWithoutPassword;
   }
