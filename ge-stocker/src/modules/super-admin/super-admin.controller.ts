@@ -15,8 +15,9 @@ export class SuperAdminController {
   getAllUsersList(
     @Query('isActive') isActive: boolean = true,
     @Query('plan') plan?: string,
+    @Query('search') search?: string
   ) {
-    return this.superAdminService.getAllUsersList(isActive, plan);
+    return this.superAdminService.getAllUsersList(isActive, plan, search);
   }
 
   @Get('users/businesses/:userId')
