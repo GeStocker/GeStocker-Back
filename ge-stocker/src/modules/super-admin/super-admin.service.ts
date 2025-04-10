@@ -8,6 +8,7 @@ import { Business } from '../bussines/entities/bussines.entity';
 import { Product } from '../products/entities/product.entity';
 import { UserRole } from 'src/interfaces/roles.enum';
 import { PaymentStatus, PurchaseLog } from '../payments/entities/payment.entity';
+import { sendEmail } from 'src/emails/config/mailer';
 
 @Injectable()
 export class SuperAdminService {
@@ -64,6 +65,7 @@ export class SuperAdminService {
     user.banReason = `${user.banReason || ''}\n[${new Date().toLocaleDateString()}] ${reason}`;
 
     await this.userRepository.save(user);
+    await sendEmail(user.email, 'Baneo de cuenta', "Ban", {reason})
     return { message: 'Usuario baneado correctamente' };
   }
 
