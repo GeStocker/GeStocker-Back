@@ -1,5 +1,5 @@
 // trial.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, Between } from 'typeorm';
@@ -34,7 +34,6 @@ export class TrialService {
       },
       relations: ['user'],
     });
-    console.log(expiredTrials);
 
     for (const trial of expiredTrials) {
       const user = trial.user;
@@ -88,7 +87,9 @@ export class TrialService {
             },
           );
         } catch (emailError) {
-          console.error(emailError);
+          throw new BadRequestException(
+            'Error al enviar el correo de recordatorio de prueba gratuita',
+          );
         }
       }
     } catch (dbError) {}

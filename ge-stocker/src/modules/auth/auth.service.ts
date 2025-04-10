@@ -329,7 +329,6 @@ export class AuthService {
   }
 
   private getStripePriceId(selectedPlan: string): string {
-    console.log("plan elegido aaaaaaaa", selectedPlan)
     const planPriceIds = {
       basic: this.configService.get('STRIPE_BASIC_PRICE_ID'),
       professional: this.configService.get('STRIPE_PROFESSIONAL_PRICE_ID'),
