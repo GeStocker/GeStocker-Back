@@ -225,15 +225,7 @@ export class AuthService {
       where: { email },
       select: ['id', 'email', 'roles', 'isActive'],
     });
-
     if (!user) {
-      if(!selectedPlan){
-        return {
-          success: 'Usuario nuevo, redirigiendo a registro',
-          isNewUser: true,
-          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
-        };
-      }
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
@@ -246,11 +238,9 @@ export class AuthService {
       return {
         success: 'Usuario nuevo, redirigiendo a registro',
         isNewUser: true,
-        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+        registerUrl: `${this.configService.get('FRONTEND_URL')}/login`,
       };
     }
-
-    if(user.isBanned) throw new UnauthorizedException('El usuario ha sido baneado');
     
     const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
     if (isBasicTrial) {
@@ -287,13 +277,6 @@ export class AuthService {
     }
     const token = this.generateJwtToken(user);
     if (!user.isActive) {
-      if(!selectedPlan){
-        return {
-          success: 'Usuario nuevo, redirigiendo a registro',
-          isNewUser: true,
-          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
-        };
-      }
       const priceId = this.getStripePriceId(selectedPlan);
       const session = await this.stripeService.createCheckoutSession(priceId, user.id);
       const pendingPurchase = await this.purchasesService.createPendingPurchase(
