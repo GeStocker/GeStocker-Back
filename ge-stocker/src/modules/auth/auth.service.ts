@@ -226,13 +226,6 @@ export class AuthService {
       select: ['id', 'email', 'roles', 'isActive'],
     });
     if (!user) {
-      if(!selectedPlan){
-        return {
-          success: 'Usuario nuevo, redirigiendo a registro',
-          isNewUser: true,
-          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
-        };
-      }
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
         email,
