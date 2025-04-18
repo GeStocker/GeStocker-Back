@@ -221,10 +221,14 @@ export class AuthService {
   }> {
     const { email, firstName, lastName, picture } = profile;
     let isNewUser = false;
+
+    // Buscar usuario incluyendo todos los campos relevantes
     let user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'roles', 'isActive'],
+      select: ['id', 'email', 'roles', 'isActive', 'isBanned', 'name'],
     });
+
+    // Crear nuevo usuario si no existe
     if (!user) {
       user = await this.userRepository.save({
         name: `${firstName} ${lastName}`,
@@ -232,81 +236,95 @@ export class AuthService {
         img: picture,
         roles: [UserRole.BASIC],
         isActive: false,
+        isBanned: false,
       });
       isNewUser = true;
-    
+    }
+
+    // Verificar si el usuario está baneado
+    if (user.isBanned) {
+      throw new UnauthorizedException('El usuario ha sido baneado');
+    }
+
+    // Validar plan seleccionado
+    if (!selectedPlan) {
       return {
-        success: 'Usuario nuevo, redirigiendo a registro',
-        isNewUser: true,
-        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+        success: isNewUser 
+          ? 'Usuario nuevo, redirigiendo a registro' 
+          : 'Selección de plan requerida',
+        ...(isNewUser && {
+          isNewUser: true,
+          registerUrl: `${this.configService.get('FRONTEND_URL')}/register`
+        })
       };
     }
-    
-    const isBasicTrial = selectedPlan === SubscriptionPlan.BASIC;
-    if (isBasicTrial) {
-      const trialExpiration = new Date();
-      trialExpiration.setDate(trialExpiration.getDate() + 7);
-  
-      const trialPurchase = this.purchaseLogRepository.create({
-        user,
-        amount: 0,
-        paymentMethod: PaymentMethod.TRIAL,
-        status: PaymentStatus.TRIAL,
-        expirationDate: trialExpiration,
-      });
-  
-      await this.purchaseLogRepository.save(trialPurchase);
-  
-      user.isActive = true;
-      await this.userRepository.save(user);
-  
-      await sendEmail(
-        user.email,
-        "Bienvenido a GeStocker - Prueba Gratuita",
-        "welcome",
-        {
-          name: user.name,
-          trialEndDate: trialExpiration.toLocaleDateString(),
+
+    // Manejar prueba gratuita BASIC
+    if (selectedPlan === SubscriptionPlan.BASIC) {
+      // Verificar si ya tiene una prueba activa
+      const existingTrial = await this.purchaseLogRepository.findOne({
+        where: {
+          user: { id: user.id },
+          status: PaymentStatus.TRIAL
         }
-      );
+      });
+
+      if (!existingTrial) {
+        const trialExpiration = new Date();
+        trialExpiration.setDate(trialExpiration.getDate() + 7);
+
+        await this.purchaseLogRepository.save({
+          user,
+          amount: 0,
+          paymentMethod: PaymentMethod.TRIAL,
+          status: PaymentStatus.TRIAL,
+          expirationDate: trialExpiration,
+        });
+
+        await this.userRepository.update(user.id, { isActive: true });
+        user.isActive = true;
+
+        await sendEmail(
+          user.email,
+          "Bienvenido a GeStocker - Prueba Gratuita",
+          "welcome",
+          {
+            name: user.name,
+            trialEndDate: trialExpiration.toLocaleDateString(),
+          }
+        );
+      }
+
       const token = this.generateJwtToken(user);
       return {
         success: 'Inicio de sesión exitoso',
         token,
       };
     }
-    if (user.isBanned) throw new UnauthorizedException('El usuario ha sido baneado');
-    if(!selectedPlan){
+
+    // Usuario ya activo
+    if (user.isActive) {
       return {
-        success: 'Usuario nuevo, redirigiendo a registro',
-        isNewUser: true,
-        registerUrl: `${this.configService.get('FRONTEND_URL')}/register`,
+        success: 'Inicio de sesión exitoso',
+        token: this.generateJwtToken(user),
       };
     }
-    const token = this.generateJwtToken(user);
-    if (!user.isActive) {
-      const priceId = this.getStripePriceId(selectedPlan);
-      const session = await this.stripeService.createCheckoutSession(priceId, user.id);
-      const pendingPurchase = await this.purchasesService.createPendingPurchase(
-        user.id,
-        (session.amount_total ?? 0) / 100,
-        session.id
-      );
-      const checkoutUrl = await this.stripeService.getCheckoutSessionUrl(
-        pendingPurchase.stripeSessionId
-      );
-      return {
-        success: 'Por favor complete su suscripción',
-        checkoutUrl: checkoutUrl ?? undefined,
-      };
-    }
+
+    // Flujo de pago para usuarios no activos
+    const priceId = this.getStripePriceId(selectedPlan);
+    const session = await this.stripeService.createCheckoutSession(priceId, user.id);
     
+    await this.purchasesService.createPendingPurchase(
+      user.id,
+      (session.amount_total ?? 0) / 100,
+      session.id
+    );
+
     return {
-      success: 'Inicio de sesión exitoso',
-      token,
+      success: 'Por favor complete su suscripción',
+      checkoutUrl: session.url ?? undefined,
     };
   }
-
 
 
   private generateJwtToken(user: User): string {
