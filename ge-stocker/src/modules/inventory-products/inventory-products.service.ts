@@ -137,4 +137,11 @@ export class InventoryProductsService {
   
     return await this.inventoryProductRepository.save(inventoryProduct);
   }
+
+  async findByInventoryId(inventoryId: string): Promise<InventoryProduct[]> {
+    return this.inventoryProductRepository.find({
+      where: { inventory: { id: inventoryId } },
+      relations: ['product', 'product.category'], // Incluye la categoría si la necesitás en el Excel
+    });
+  }
 }
