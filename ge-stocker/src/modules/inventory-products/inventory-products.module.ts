@@ -15,12 +15,15 @@ import { IncomingShipmentController } from '../incoming-shipment/incoming-shipme
 import { IncomingShipment } from '../incoming-shipment/entities/incoming-shipment.entity';
 import { IncomingShipmentModule } from '../incoming-shipment/incoming-shipment.module';
 import { Collaborator } from '../collaborators/entities/collaborator.entity';
+import { ExportInventoryController } from './export-inventory.controller';
+import { ExcelExportInventoryService } from './export-excel-inventory.service';
+import { IncomingProduct } from '../incoming-shipment/entities/incoming-products.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User, IncomingShipment, Collaborator]),
+  imports: [TypeOrmModule.forFeature([InventoryProduct, Inventory, Product, SalesOrder, User, IncomingShipment, Collaborator, IncomingProduct]),
 ProductsModule,
 IncomingShipmentModule],
-  controllers: [InventoryProductsController, ExcelInventoryImportController, IncomingShipmentController],
-  providers: [InventoryProductsService, ExcelImportInventoryService], 
+  controllers: [InventoryProductsController, ExcelInventoryImportController, IncomingShipmentController, ExportInventoryController],
+  providers: [InventoryProductsService, ExcelImportInventoryService, ExcelExportInventoryService], 
 })
 export class InventoryProductsModule {}
